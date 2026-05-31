@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP Soluções — Cérebro PASEP</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ouro:#C9A84C;--ouro-claro:#E8C96A;--preto:#0D0D0D;--preto-2:#1A1A1A;--preto-3:#242424;
+  --cinza-1:#3A3A3A;--cinza-2:#555;--cinza-3:#888;--cinza-4:#BBB;--branco:#FAFAF8;
+  --verde:#2D7A4F;--vermelho:#C0392B;--azul:#1A5FA8;--radius:8px;--radius-lg:12px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--preto);color:var(--branco);min-height:100vh}
+.header{background:var(--preto-2);border-bottom:1px solid rgba(201,168,76,.2);padding:14px 28px;display:flex;align-items:center;gap:14px}
+.header-logo{font-family:'Playfair Display',serif;font-size:17px;color:var(--ouro)}
+.header-sub{font-size:11px;color:var(--cinza-3);letter-spacing:.5px;margin-top:2px}
+.header-badge{margin-left:auto;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--ouro)}
+.layout{display:flex;height:calc(100vh - 65px)}
+.sidebar{width:210px;background:var(--preto-2);border-right:1px solid rgba(255,255,255,.06);padding:12px 0;flex-shrink:0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 18px;background:none;border:none;color:var(--cinza-4);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:.15s;text-align:left;border-left:2px solid transparent}
+.nav-item:hover{color:var(--branco);background:rgba(255,255,255,.04)}
+.nav-item.active{color:var(--ouro);background:rgba(201,168,76,.08);border-left-color:var(--ouro)}
+.nav-section{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--cinza-2);padding:12px 18px 5px}
+.main{flex:1;overflow-y:auto;padding:24px}
+.page{display:none}.page.active{display:block}
+.card{background:var(--preto-2);border:1px solid rgba(255,255,255,.07);border-radius:var(--radius-lg);padding:20px 22px;margin-bottom:18px}
+.card-title{font-size:11px;font-weight:500;color:var(--cinza-3);margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.form-label{font-size:11px;color:var(--cinza-3);letter-spacing:.3px}
+.form-control{background:var(--preto-3);border:1px solid var(--cinza-1);border-radius:var(--radius);padding:9px 12px;color:var(--branco);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:.2s;width:100%}
+.form-control:focus{border-color:var(--ouro)}
+textarea.form-control{resize:vertical}
+.btn{padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:.2s}
+.btn-primary{background:var(--ouro);color:var(--preto)}.btn-primary:hover{background:var(--ouro-claro)}
+.btn-ghost{background:transparent;color:var(--cinza-4);border:1px solid var(--cinza-1)}.btn-ghost:hover{color:var(--branco)}
+.btn-danger{background:transparent;color:var(--vermelho);border:1px solid rgba(192,57,43,.3);font-size:12px;padding:4px 10px}
+.btn-sm{padding:5px 10px;font-size:11px}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;cursor:default;margin:2px}
+.tag-ouro{background:rgba(201,168,76,.15);color:var(--ouro);border:1px solid rgba(201,168,76,.3)}
+.tag-verde{background:#1A3D2B;color:#4CAF82}
+.tag-azul{background:#0E2040;color:#6BA8E8}
+.tag-vermelho{background:#2D1212;color:#E57368}
+.metric{background:var(--preto-3);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);padding:14px 16px;text-align:center}
+.metric-value{font-size:26px;font-weight:300;font-family:'Playfair Display',serif;color:var(--ouro)}
+.metric-label{font-size:10px;color:var(--cinza-3);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;color:var(--cinza-3);text-align:left;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.07);text-transform:uppercase;letter-spacing:.5px}
+td{font-size:12px;color:var(--cinza-4);padding:10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top}
+tr:hover td{background:rgba(255,255,255,.02)}
+.empty{text-align:center;padding:40px 20px;color:var(--cinza-3)}
+.empty-icon{font-size:36px;margin-bottom:10px;opacity:.4}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--preto-2);border:1px solid rgba(201,168,76,.2);border-radius:var(--radius-lg);width:700px;max-width:96vw;max-height:92vh;overflow-y:auto}
+.modal-header{padding:20px 22px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Playfair Display',serif;font-size:17px;color:var(--branco)}
+.modal-close{background:none;border:none;color:var(--cinza-3);font-size:18px;cursor:pointer;padding:2px 6px}
+.modal-body{padding:20px 22px}
+.modal-footer{padding:12px 22px 18px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid rgba(255,255,255,.07)}
+.alert{border-radius:var(--radius);padding:10px 14px;font-size:12px;margin-bottom:14px}
+.alert-ouro{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);color:var(--ouro-claro)}
+.alert-verde{background:rgba(45,122,79,.08);border:1px solid rgba(45,122,79,.3);color:#4CAF82}
+.alert-vermelho{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);color:#E57368}
+.progress-bar{background:var(--cinza-1);border-radius:4px;height:6px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:4px;background:var(--ouro);transition:.5s}
+.tabs{display:flex;gap:3px;background:var(--preto-3);border-radius:var(--radius);padding:3px;margin-bottom:18px}
+.tab{flex:1;padding:7px;border:none;background:none;color:var(--cinza-3);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;border-radius:6px;transition:.15s;font-weight:500}
+.tab.active{background:var(--preto-2);color:var(--ouro)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.piece-card{background:var(--preto-3);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;transition:.15s}
+.piece-card:hover{border-color:rgba(201,168,76,.2)}
+.piece-title{font-size:13px;font-weight:500;color:var(--branco);margin-bottom:4px}
+.piece-meta{font-size:11px;color:var(--cinza-3)}
+.piece-preview{font-size:11px;color:var(--cinza-4);margin-top:6px;line-height:1.5;max-height:55px;overflow:hidden}
+.mov-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:flex-start}
+.mov-id{background:rgba(201,168,76,.12);color:var(--ouro);font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;white-space:nowrap;font-family:'Courier New',monospace;border:1px solid rgba(201,168,76,.2);flex-shrink:0;margin-top:2px}
+.loading-dots::after{content:'';animation:dots 1.2s steps(4,end) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--cinza-1);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-logo">🛡 Cérebro PASEP — AP Soluções Jurídicas</div>
+    <div class="header-sub">Banco de conhecimento · Leitura de peças · Minutas com IDs de movimentações</div>
+  </div>
+  <div class="header-badge" id="hdr-badge">Carregando…</div>
+</div>
+
+<div class="layout">
+<nav class="sidebar">
+  <div class="nav-section">Banco</div>
+  <button class="nav-item active" onclick="navTo('painel',this)">📊 Painel geral</button>
+  <button class="nav-item" onclick="navTo('teses',this)">⚖ Teses jurídicas</button>
+  <button class="nav-item" onclick="navTo('minutas',this)">📄 Minutas modelo</button>
+  <div class="nav-section">Processamento</div>
+  <button class="nav-item" onclick="navTo('ler',this)">📥 Ler peça processual</button>
+  <button class="nav-item" onclick="navTo('movimentacoes',this)">🔢 Movimentações</button>
+  <div class="nav-section">Geração</div>
+  <button class="nav-item" onclick="navTo('gerar',this)">✦ Gerar minuta IA</button>
+  <div class="nav-section">Sistema</div>
+  <button class="nav-item" onclick="navTo('config',this)">⚙ Memória e config</button>
+</nav>
+
+<div class="main">
+
+<!-- ══ PAINEL ══ -->
+<div class="page active" id="page-painel">
+  <div class="grid3" style="margin-bottom:18px">
+    <div class="metric"><div class="metric-value" id="m-teses">0</div><div class="metric-label">Teses cadastradas</div></div>
+    <div class="metric"><div class="metric-value" id="m-minutas">0</div><div class="metric-label">Minutas modelo</div></div>
+    <div class="metric"><div class="metric-value" id="m-movs">0</div><div class="metric-label">Movimentações</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Uso de memória (localStorage)</div>
+      <div id="mem-info-painel"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Como funciona o Cérebro PASEP</div>
+      <div style="font-size:12px;color:var(--cinza-4);line-height:1.9">
+        <div><span style="color:var(--ouro)">1.</span> Cadastre <strong style="color:var(--branco)">teses jurídicas</strong> com tags e jurisprudência</div>
+        <div><span style="color:var(--ouro)">2.</span> Cadastre <strong style="color:var(--branco)">minutas modelo</strong> de peças que funcionaram</div>
+        <div><span style="color:var(--ouro)">3.</span> <strong style="color:var(--branco)">Cole a peça</strong> da parte contrária — a IA extrai argumentos e IDs</div>
+        <div><span style="color:var(--ouro)">4.</span> Registre <strong style="color:var(--branco)">movimentações</strong> com ID numérico do PJe/e-Proc</div>
+        <div><span style="color:var(--ouro)">5.</span> Clique em <strong style="color:var(--branco)">Gerar minuta</strong> — a IA seleciona as teses relevantes e referencia os IDs na peça</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Estratégia de memória — Como o contexto é gerenciado</div>
+    <div style="font-size:12px;color:var(--cinza-4);line-height:1.7;margin-bottom:14px">O banco pode conter centenas de teses, mas a IA recebe apenas o material relevante por chamada. Isso mantém as respostas rápidas e baratas.</div>
+    <div class="grid3">
+      <div style="background:rgba(45,122,79,.06);border:1px solid rgba(45,122,79,.2);border-radius:var(--radius);padding:12px">
+        <div style="font-size:11px;font-weight:500;color:#4CAF82;margin-bottom:6px">Seleção por tags</div>
+        <div style="font-size:11px;color:var(--cinza-4)">Tags detectadas na peça → só teses com as mesmas tags são enviadas. Máx. 3 teses por chamada.</div>
+      </div>
+      <div style="background:rgba(26,95,168,.06);border:1px solid rgba(26,95,168,.2);border-radius:var(--radius);padding:12px">
+        <div style="font-size:11px;font-weight:500;color:#6BA8E8;margin-bottom:6px">IDs contextuais</div>
+        <div style="font-size:11px;color:var(--cinza-4)">Apenas movimentações do processo atual são incluídas. A IA as referencia no formato [MOV-ID: XXXXXXX].</div>
+      </div>
+      <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:var(--radius);padding:12px">
+        <div style="font-size:11px;font-weight:500;color:var(--ouro);margin-bottom:6px">Limite inteligente</div>
+        <div style="font-size:11px;color:var(--cinza-4)">Peça truncada em 2.000 chars. Total por chamada: ~6-8 KB. Suficiente para uma resposta completa.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TESES ══ -->
+<div class="page" id="page-teses">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div style="font-size:15px;font-weight:500">Banco de teses jurídicas PASEP</div>
+    <button class="btn btn-primary" onclick="abrirModalTese()">+ Nova tese</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <input class="form-control" id="busca-teses" placeholder="Buscar por tema, tag ou conteúdo…" oninput="filtrarTeses()" style="flex:1">
+    <select class="form-control" style="width:160px" id="filtro-tag-tese" onchange="filtrarTeses()">
+      <option value="">Todas as tags</option>
+    </select>
+  </div>
+  <div id="teses-lista"></div>
+</div>
+
+<!-- ══ MINUTAS ══ -->
+<div class="page" id="page-minutas">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div style="font-size:15px;font-weight:500">Minutas modelo</div>
+    <button class="btn btn-primary" onclick="abrirModalMinuta()">+ Nova minuta</button>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <input class="form-control" id="busca-minutas" placeholder="Buscar minutas…" oninput="filtrarMinutas()" style="flex:1">
+    <select class="form-control" style="width:180px" id="filtro-tipo-minuta" onchange="filtrarMinutas()">
+      <option value="">Todos os tipos</option>
+      <option>Petição Inicial</option><option>Recurso de Apelação</option>
+      <option>Embargos</option><option>Réplica</option><option>Memoriais</option>
+    </select>
+  </div>
+  <div id="minutas-lista"></div>
+</div>
+
+<!-- ══ LER PEÇA ══ -->
+<div class="page" id="page-ler">
+  <div class="tabs" id="ler-tabs-bar">
+    <button class="tab active" onclick="switchTab('ler',0,this)">📋 Colar texto</button>
+    <button class="tab" onclick="switchTab('ler',1,this)">📤 Upload .txt</button>
+    <button class="tab" onclick="switchTab('ler',2,this)">📁 Peças lidas</button>
+  </div>
+  <div class="tab-pane active" id="ler-tab-0">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Cole a peça processual aqui</div>
+        <div class="form-group">
+          <label class="form-label">Tipo de peça</label>
+          <select class="form-control" id="ler-tipo">
+            <option>Decisão interlocutória</option><option>Sentença</option>
+            <option>Acórdão</option><option>Contestação CEF/BB/União</option>
+            <option>Despacho / Intimação</option><option>Laudo pericial</option>
+            <option>Petição da parte contrária</option><option>Andamento / Certidão</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número do processo (opcional)</label>
+          <input class="form-control" id="ler-proc" placeholder="0000000-00.0000.4.00.0000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Texto da peça *</label>
+          <textarea class="form-control" id="ler-texto" rows="13" placeholder="Cole aqui o texto copiado do PJe, e-Proc ou PDF…&#10;&#10;O sistema irá:&#10;• Extrair IDs de movimentações automaticamente&#10;• Identificar argumentos da parte contrária&#10;• Detectar prazos e obrigações&#10;• Classificar por tags PASEP relevantes"></textarea>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" style="flex:1" onclick="lerPeca()">Processar peça ✦</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('ler-texto').value=''">Limpar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Análise da peça</div>
+        <div id="ler-resultado" style="min-height:360px">
+          <div class="empty"><div class="empty-icon">📥</div><div style="font-size:13px;color:var(--cinza-4)">Aguardando peça</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-pane" id="ler-tab-1">
+    <div class="card">
+      <div class="card-title">Upload de arquivo de texto</div>
+      <div style="border:2px dashed rgba(201,168,76,.2);border-radius:var(--radius-lg);padding:48px;text-align:center;cursor:pointer" onclick="document.getElementById('txt-input').click()">
+        <div style="font-size:36px;margin-bottom:10px;opacity:.4">📄</div>
+        <div style="font-size:14px;color:var(--cinza-4)">Clique para selecionar arquivo .txt</div>
+        <div style="font-size:11px;color:var(--cinza-3);margin-top:6px">Para PDFs: abra no leitor, selecione tudo (Ctrl+A), copie e cole na aba "Colar texto"</div>
+        <input type="file" id="txt-input" accept=".txt,.text" style="display:none" onchange="processarTxt(this)">
+      </div>
+      <div id="txt-resultado" style="margin-top:14px"></div>
+    </div>
+  </div>
+  <div class="tab-pane" id="ler-tab-2">
+    <div id="pecas-lidas-lista"></div>
+  </div>
+</div>
+
+<!-- ══ MOVIMENTAÇÕES ══ -->
+<div class="page" id="page-movimentacoes">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-size:15px;font-weight:500">Movimentações processuais</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="extrairMovsAutomatic()">Extrair do último texto</button>
+      <button class="btn btn-primary" onclick="abrirModalMov()">+ Nova movimentação</button>
+    </div>
+  </div>
+  <div class="alert alert-ouro">
+    💡 Os IDs cadastrados aqui serão referenciados automaticamente nas minutas. Formato gerado: <span style="font-family:'Courier New',monospace;font-size:11px">(mov. ID 4829156, juntada em 15/05/2026)</span>
+  </div>
+  <div class="card">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <input class="form-control" id="busca-movs" placeholder="Buscar por ID ou descrição…" style="flex:1;min-width:140px" oninput="filtrarMovs()">
+      <input class="form-control" id="filtro-proc-mov" placeholder="Filtrar por processo…" style="width:190px" oninput="filtrarMovs()">
+    </div>
+    <div id="movs-lista"></div>
+  </div>
+</div>
+
+<!-- ══ GERAR MINUTA ══ -->
+<div class="page" id="page-gerar">
+  <div class="alert alert-ouro" style="margin-bottom:18px">
+    ✦ O sistema seleciona automaticamente as teses mais relevantes, inclui os IDs das movimentações e usa a peça lida para gerar uma minuta contextualizada.
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Configurar geração</div>
+      <div class="form-group">
+        <label class="form-label">Tipo de peça a gerar *</label>
+        <select class="form-control" id="gen-tipo">
+          <option>Petição Inicial — Revisão PASEP</option>
+          <option>Réplica à contestação da CEF/BB/União</option>
+          <option>Memoriais finais — PASEP</option>
+          <option>Recurso de Apelação — PASEP</option>
+          <option>Contrarrazões de apelação</option>
+          <option>Embargos de Declaração</option>
+          <option>Impugnação ao laudo pericial</option>
+          <option>Petição de complementação de cálculos</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cliente / Autor</label>
+        <input class="form-control" id="gen-cliente" placeholder="Nome completo do autor">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Processo vinculado</label>
+        <input class="form-control" id="gen-proc" placeholder="Número do processo" oninput="atualizarPreviewContexto()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Peça processual de referência</label>
+        <select class="form-control" id="gen-peca-ref" onchange="atualizarPreviewContexto()">
+          <option value="">— Selecionar peça lida —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags relevantes para seleção de teses</label>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;max-height:100px;overflow-y:auto" id="gen-tags"></div>
+      </div>
+      <div style="background:var(--preto-3);border-radius:var(--radius);padding:12px;margin-bottom:12px">
+        <div style="font-size:10px;color:var(--cinza-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Contexto que será enviado à IA</div>
+        <div id="gen-contexto-preview" style="font-size:11px;color:var(--cinza-4);line-height:1.7"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Instruções adicionais (opcional)</label>
+        <textarea class="form-control" id="gen-instrucoes" rows="3" placeholder="Ex: enfatizar prescrição, mencionar que réu é revel, incluir tutela urgente…"></textarea>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="gerarMinuta()">✦ Gerar minuta com IA</button>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="card-title">Minuta gerada</div>
+      <div id="gen-resultado" style="flex:1;min-height:420px">
+        <div class="empty"><div class="empty-icon">✦</div><div style="font-size:13px;color:var(--cinza-4)">Configure e clique em gerar</div></div>
+      </div>
+      <div id="gen-acoes" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);display:none;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="copiarMinuta()">Copiar</button>
+        <button class="btn btn-ghost btn-sm" onclick="baixarMinuta()">Baixar .txt</button>
+        <button class="btn btn-ghost btn-sm" onclick="salvarComoModelo()">Salvar como modelo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIG ══ -->
+<div class="page" id="page-config">
+  <div class="card">
+    <div class="card-title">Uso de memória — localStorage do navegador</div>
+    <div id="config-mem"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Limites de contexto por chamada à IA</div>
+    <table>
+      <thead><tr><th>Componente</th><th>Limite</th><th>Estratégia</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--branco)">Teses jurídicas</strong></td><td style="color:var(--ouro)">Máx. 3</td><td style="color:var(--cinza-4)">Seleção por score de tags</td></tr>
+        <tr><td><strong style="color:var(--branco)">Minuta modelo</strong></td><td style="color:var(--ouro)">Máx. 1</td><td style="color:var(--cinza-4)">Tipo mais próximo ao solicitado</td></tr>
+        <tr><td><strong style="color:var(--branco)">Peça processual</strong></td><td style="color:var(--ouro)">2.000 chars</td><td style="color:var(--cinza-4)">Truncagem inteligente</td></tr>
+        <tr><td><strong style="color:var(--branco)">Movimentações</strong></td><td style="color:var(--ouro)">Máx. 15</td><td style="color:var(--cinza-4)">Filtradas pelo processo selecionado</td></tr>
+        <tr><td><strong style="color:var(--branco)">Total por chamada</strong></td><td style="color:#4CAF82">~6-8 KB</td><td style="color:var(--cinza-4)">Controlado e rápido</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">Gerenciar banco de dados</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="exportarBanco()">📥 Exportar banco (.json)</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('imp-input').click()">📤 Importar banco</button>
+      <input type="file" id="imp-input" accept=".json" style="display:none" onchange="importarBanco(this)">
+      <button class="btn btn-danger btn-sm" onclick="if(confirm('Limpar tudo?'))limparTudo()">🗑 Limpar tudo</button>
+    </div>
+  </div>
+</div>
+
+</div></div>
+
+<!-- MODAL TESE -->
+<div class="modal-bg" id="modal-tese">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="mt-titulo">Nova tese jurídica</div>
+      <button class="modal-close" onclick="fecharModal('modal-tese')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Título *</label><input class="form-control" id="t-titulo" placeholder="Ex: Plano Verão — IPC 70,28% vs 42,72%"></div>
+      <div class="form-group"><label class="form-label">Tags (separadas por vírgula) *</label><input class="form-control" id="t-tags" placeholder="plano-verao, ipc, expurgo, collor, prescricao…"></div>
+      <div class="form-group"><label class="form-label">Conteúdo da tese + jurisprudência *</label><textarea class="form-control" id="t-conteudo" rows="8" placeholder="Argumentação completa, base legal, súmulas, REsp, como usar na petição…"></textarea></div>
+      <div class="form-group"><label class="form-label">Jurisprudência principal</label><input class="form-control" id="t-jurisp" placeholder="STJ REsp 1.070.896/SC, Súmula 252-STJ…"></div>
+      <div class="form-group"><label class="form-label">Tribunal</label><select class="form-control" id="t-tribunal"><option>STJ</option><option>STF</option><option>TRF1</option><option>TJ/PI</option><option>JEF</option><option>Todos</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-tese')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarTese()">Salvar tese</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MINUTA -->
+<div class="modal-bg" id="modal-minuta">
+  <div class="modal" style="width:780px">
+    <div class="modal-header">
+      <div class="modal-title" id="mm-titulo">Nova minuta modelo</div>
+      <button class="modal-close" onclick="fecharModal('modal-minuta')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">Nome da minuta *</label><input class="form-control" id="m-nome" placeholder="Ex: Petição Inicial — Plano Verão servidor estadual"></div>
+        <div class="form-group"><label class="form-label">Tipo *</label><select class="form-control" id="m-tipo"><option>Petição Inicial</option><option>Recurso de Apelação</option><option>Embargos</option><option>Réplica</option><option>Memoriais</option><option>Outro</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Tags *</label><input class="form-control" id="m-tags" placeholder="plano-verao, collor, herdeiro, jef…"></div>
+      <div class="form-group"><label class="form-label">Conteúdo da minuta *</label><textarea class="form-control" id="m-conteudo" rows="12" placeholder="Cole a minuta modelo. Use [NOME_CLIENTE], [PERIODO], [VALOR_CAUSA] como placeholders que a IA preencherá…"></textarea></div>
+      <div class="form-group"><label class="form-label">Observações de uso</label><input class="form-control" id="m-obs" placeholder="Quando usar, variações importantes…"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-minuta')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarMinuta()">Salvar minuta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MOVIMENTAÇÃO -->
+<div class="modal-bg" id="modal-mov">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <div class="modal-title">Nova movimentação processual</div>
+      <button class="modal-close" onclick="fecharModal('modal-mov')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid2">
+        <div class="form-group"><label class="form-label">ID da movimentação *</label><input class="form-control" id="mov-id-input" placeholder="Ex: 4829156" style="font-family:'Courier New',monospace"></div>
+        <div class="form-group"><label class="form-label">Data *</label><input class="form-control" id="mov-data-input" type="date"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Número do processo *</label><input class="form-control" id="mov-proc-input" placeholder="0000000-00.0000.4.00.0000"></div>
+      <div class="form-group"><label class="form-label">Descrição do ato *</label><input class="form-control" id="mov-desc-input" placeholder="Ex: Contestação da CEF juntada aos autos"></div>
+      <div class="form-group"><label class="form-label">Texto do ato (opcional)</label><textarea class="form-control" id="mov-texto-input" rows="4" placeholder="Cole aqui o texto do andamento para que a IA possa referenciá-lo…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-mov')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarMov()">Salvar movimentação</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB_KEY='ap_pasep_cerebro_v2';
+let db={teses:[],minutas:[],pecas:[],movimentacoes:[],nextId:{tese:1,minuta:1,peca:1}};
+let editandoTese=null,editandoMinuta=null,minutaGerada='';
+
+const TAGS_PADRAO=['plano-verao','collor-1','collor-ii','prescricao','herdeiro','jef','trf1','fazenda-publica','ipc','btnf','selic','ipca-e','servidor-estadual','servidor-federal','servidor-municipal','trabalhador-celetista','saque-parcial','tutela-urgente','idoso','revisao-saldo','calculo','nulidade'];
+
+function carregarDB(){
+  try{const s=localStorage.getItem(DB_KEY);if(s)db=JSON.parse(s);}catch(e){}
+  if(!db.teses.length)seedTeses();
+}
+function salvarDB(){try{localStorage.setItem(DB_KEY,JSON.stringify(db));}catch(e){alert('Armazenamento cheio! Exporte e limpe o banco.');}}
+function proxId(t){return db.nextId[t]++;}
+
+function seedTeses(){
+  db.teses=[
+    {id:1,titulo:'Plano Verão (jan/1989) — IPC 70,28% vs 42,72% governamental',tags:['plano-verao','ipc','expurgo'],conteudo:'O Plano Verão (Decreto-Lei 2.335/87) fixou artificialmente o BTNF em 42,72% para janeiro/1989, quando o IPC/IBGE real atingiu 70,28%. A diferença de 27,56 pontos percentuais constitui expurgo inflacionário reconhecido pela jurisprudência pacífica do STJ. No REsp repetitivo 1.070.896/SC, o STJ consolidou que os saldos do PASEP devem ser corrigidos pelo IPC real, não pelo índice artificialmente reduzido. A aplicação de índice inferior ao real configura enriquecimento ilícito da União às expensas do trabalhador.',jurisp:'STJ REsp 1.070.896/SC (repetitivo), Súmula 252-STJ, TRF1 AC 2001.38.02.000240-1',tribunal:'STJ',data:'2026-05-26'},
+    {id:2,titulo:'Plano Collor I (mar/1990) — IPC 84,32% vs 44,80%',tags:['collor-1','ipc','expurgo'],conteudo:'O Plano Collor I (MP 168/90, Lei 8.024/90) aplicou o BTNF de 44,80% para março/1990, quando o IPC/IBGE registrou 84,32%. A diferença de 39,52 pontos percentuais é o maior expurgo individual da história do PASEP. O bloqueio de cruzados novos não afasta o direito à correção pelo IPC real, pois a lesão patrimonial ocorreu no momento da conversão monetária. O STJ pacificou no REsp 1.131.709/RS que o direito à diferença é irrenunciável e imprescritível quanto ao fundo de direito.',jurisp:'STJ REsp 1.131.709/RS, AgRg no REsp 1.370.045/RS, TRF1 AMS 2005.01.00.007889-0',tribunal:'STJ',data:'2026-05-26'},
+    {id:3,titulo:'Prescrição quinquenal — Decreto 20.910/32',tags:['prescricao','fazenda-publica'],conteudo:'O prazo prescricional para cobrança de diferenças do PASEP é de 5 anos (art. 1º, Decreto 20.910/32), aplicável às ações contra a Fazenda Pública e entidades paraestatais como CEF e BB. Para saldos nunca sacados, a jurisprudência do TRF1 entende que a lesão é de trato continuado e o prazo se renova anualmente, ou conta da data em que o titular completou os requisitos para saque. Herdeiros têm o prazo de 5 anos a contar do óbito do titular ou da data em que tiveram ciência do direito.',jurisp:'Decreto 20.910/32 art. 1º, STJ REsp 1.110.549/RS, TRF1 AC 2009.38.02.001047-2',tribunal:'Todos',data:'2026-05-26'},
+    {id:4,titulo:'Competência — JEF para causas até 60 salários mínimos',tags:['jef','competencia'],conteudo:'As ações de revisão do PASEP até 60 salários mínimos são processadas no Juizado Especial Federal, nos termos da Lei 10.259/01. Acima desse valor, a competência é da Vara Federal comum. O polo passivo é a União Federal, Caixa Econômica Federal (PASEP pós-Constituição) ou Banco do Brasil (PASEP anterior à CF/88). A competência é do JEF/Vara Federal da seção judiciária do domicílio do autor (art. 109, §2º, CF/88). Em Floriano/PI, há JEF com competência regional.',jurisp:'Lei 10.259/01, CF/88 art. 109 §2º, TRF1 CC 2010.01.00.020987-5',tribunal:'TRF1',data:'2026-05-26'},
+  ];
+  db.nextId.tese=5;
+  salvarDB();
+}
+
+window.addEventListener('load',()=>{
+  carregarDB();
+  renderPainel();
+  renderTagsGeracao();
+  populaSelectPecas();
+  atualizarBadge();
+});
+
+function atualizarBadge(){
+  document.getElementById('hdr-badge').textContent=`${db.teses.length} teses · ${db.minutas.length} minutas · ${db.movimentacoes.length} movimentações`;
+}
+
+function navTo(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  const m={painel:renderPainel,teses:renderTeses,minutas:renderMinutas,movimentacoes:renderMovs,config:renderConfig,ler:()=>{renderPecasLidas();populaSelectPecas();},gerar:()=>{renderTagsGeracao();populaSelectPecas();atualizarPreviewContexto();}};
+  if(m[id])m[id]();
+}
+
+function switchTab(g,i,el){
+  document.querySelectorAll(`[id^="${g}-tab-"]`).forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll(`#${g}-tabs-bar .tab`).forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(`${g}-tab-${i}`).classList.add('active');
+}
+
+function abrirModal(id){document.getElementById(id).classList.add('open')}
+function fecharModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+
+// ══ PAINEL ══
+function renderPainel(){
+  document.getElementById('m-teses').textContent=db.teses.length;
+  document.getElementById('m-minutas').textContent=db.minutas.length;
+  document.getElementById('m-movs').textContent=db.movimentacoes.length;
+  renderMemInfo('mem-info-painel');
+}
+function renderMemInfo(elId){
+  const total=JSON.stringify(db).length;
+  const max=5*1024*1024;
+  const pct=Math.round(total/max*100);
+  const el=document.getElementById(elId);if(!el)return;
+  el.innerHTML=`<div style="font-size:12px;color:var(--cinza-4);margin-bottom:8px">Usando <strong style="color:var(--branco)">${(total/1024).toFixed(1)} KB</strong> de 5.120 KB disponíveis no localStorage</div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div style="font-size:11px;color:var(--cinza-3);margin-top:6px">${pct}% · ${((max-total)/1024).toFixed(0)} KB livres · ~${Math.floor((max-total)/600)} teses adicionais possíveis</div>`;
+}
+
+// ══ TESES ══
+function renderTeses(lista){
+  const el=document.getElementById('teses-lista');
+  const d=lista||db.teses;
+  if(!d.length){el.innerHTML=`<div class="empty"><div class="empty-icon">⚖</div><div style="font-size:13px;color:var(--cinza-4)">Nenhuma tese cadastrada</div></div>`;return}
+  const tags=[...new Set(db.teses.flatMap(t=>t.tags))];
+  const sel=document.getElementById('filtro-tag-tese');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Todas as tags</option>'+tags.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('');
+  el.innerHTML=d.map(t=>`<div class="piece-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div style="flex:1">
+        <div class="piece-title">${t.titulo}</div>
+        <div class="piece-meta">${t.tribunal} · ${t.jurisp||''}</div>
+        <div style="margin-top:6px">${t.tags.map(tg=>`<span class="tag tag-ouro">${tg}</span>`).join('')}</div>
+        <div class="piece-preview">${t.conteudo}</div>
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <button class="btn btn-ghost btn-sm" onclick="editarTese(${t.id})">Editar</button>
+        <button class="btn btn-danger" onclick="excluirTese(${t.id})">✕</button>
+      </div>
+    </div>
+  </div>`).join('');
+}
+function filtrarTeses(){
+  const q=document.getElementById('busca-teses').value.toLowerCase();
+  const tag=document.getElementById('filtro-tag-tese').value;
+  renderTeses(db.teses.filter(t=>(!q||t.titulo.toLowerCase().includes(q)||t.conteudo.toLowerCase().includes(q))&&(!tag||t.tags.includes(tag))));
+}
+function abrirModalTese(){
+  editandoTese=null;
+  ['titulo','tags','conteudo','jurisp'].forEach(f=>document.getElementById('t-'+f).value='');
+  document.getElementById('t-tribunal').value='STJ';
+  document.getElementById('mt-titulo').textContent='Nova tese jurídica';
+  abrirModal('modal-tese');
+}
+function editarTese(id){
+  const t=db.teses.find(x=>x.id===id);editandoTese=id;
+  document.getElementById('t-titulo').value=t.titulo;
+  document.getElementById('t-tags').value=t.tags.join(', ');
+  document.getElementById('t-conteudo').value=t.conteudo;
+  document.getElementById('t-jurisp').value=t.jurisp||'';
+  document.getElementById('t-tribunal').value=t.tribunal||'STJ';
+  document.getElementById('mt-titulo').textContent='Editar tese';
+  abrirModal('modal-tese');
+}
+function salvarTese(){
+  const obj={titulo:document.getElementById('t-titulo').value.trim(),tags:document.getElementById('t-tags').value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean),conteudo:document.getElementById('t-conteudo').value.trim(),jurisp:document.getElementById('t-jurisp').value.trim(),tribunal:document.getElementById('t-tribunal').value,data:new Date().toISOString().slice(0,10)};
+  if(!obj.titulo||!obj.conteudo){alert('Preencha título e conteúdo');return}
+  if(editandoTese){Object.assign(db.teses.find(x=>x.id===editandoTese),obj)}
+  else{obj.id=proxId('tese');db.teses.push(obj)}
+  salvarDB();fecharModal('modal-tese');renderTeses();renderTagsGeracao();atualizarBadge();
+}
+function excluirTese(id){if(confirm('Excluir?')){db.teses=db.teses.filter(x=>x.id!==id);salvarDB();renderTeses();atualizarBadge();}}
+
+// ══ MINUTAS ══
+function renderMinutas(lista){
+  const el=document.getElementById('minutas-lista');
+  const d=lista||db.minutas;
+  if(!d.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📄</div><div style="font-size:13px;color:var(--cinza-4)">Nenhuma minuta cadastrada</div><div style="font-size:12px;margin-top:4px">Adicione modelos de peças que funcionaram bem nos seus casos</div></div>`;return}
+  el.innerHTML=d.map(m=>`<div class="piece-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div style="flex:1">
+        <div class="piece-title">${m.nome}</div>
+        <div class="piece-meta"><span class="tag tag-azul" style="font-size:10px">${m.tipo}</span> ${m.obs?'· '+m.obs:''}</div>
+        <div style="margin-top:5px">${m.tags.map(t=>`<span class="tag tag-ouro">${t}</span>`).join('')}</div>
+        <div class="piece-preview">${m.conteudo.substring(0,220)}…</div>
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <button class="btn btn-ghost btn-sm" onclick="editarMinuta(${m.id})">Editar</button>
+        <button class="btn btn-danger" onclick="excluirMinuta(${m.id})">✕</button>
+      </div>
+    </div>
+  </div>`).join('');
+}
+function filtrarMinutas(){
+  const q=document.getElementById('busca-minutas').value.toLowerCase();
+  const tipo=document.getElementById('filtro-tipo-minuta').value;
+  renderMinutas(db.minutas.filter(m=>(!q||m.nome.toLowerCase().includes(q)||m.conteudo.toLowerCase().includes(q))&&(!tipo||m.tipo===tipo)));
+}
+function abrirModalMinuta(){
+  editandoMinuta=null;
+  ['nome','tags','conteudo','obs'].forEach(f=>document.getElementById('m-'+f).value='');
+  document.getElementById('m-tipo').value='Petição Inicial';
+  document.getElementById('mm-titulo').textContent='Nova minuta modelo';
+  abrirModal('modal-minuta');
+}
+function editarMinuta(id){
+  const m=db.minutas.find(x=>x.id===id);editandoMinuta=id;
+  document.getElementById('m-nome').value=m.nome;
+  document.getElementById('m-tags').value=m.tags.join(', ');
+  document.getElementById('m-conteudo').value=m.conteudo;
+  document.getElementById('m-obs').value=m.obs||'';
+  document.getElementById('m-tipo').value=m.tipo;
+  document.getElementById('mm-titulo').textContent='Editar minuta';
+  abrirModal('modal-minuta');
+}
+function salvarMinuta(){
+  const obj={nome:document.getElementById('m-nome').value.trim(),tipo:document.getElementById('m-tipo').value,tags:document.getElementById('m-tags').value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean),conteudo:document.getElementById('m-conteudo').value.trim(),obs:document.getElementById('m-obs').value.trim(),data:new Date().toISOString().slice(0,10)};
+  if(!obj.nome||!obj.conteudo){alert('Preencha nome e conteúdo');return}
+  if(editandoMinuta){Object.assign(db.minutas.find(x=>x.id===editandoMinuta),obj)}
+  else{obj.id=proxId('minuta');db.minutas.push(obj)}
+  salvarDB();fecharModal('modal-minuta');renderMinutas();atualizarBadge();
+}
+function excluirMinuta(id){if(confirm('Excluir?')){db.minutas=db.minutas.filter(x=>x.id!==id);salvarDB();renderMinutas();atualizarBadge();}}
+
+// ══ LER PEÇA ══
+function extrairIDs(texto){
+  const ids=new Set();
+  [/\b(\d{7,9})\b/g,/mov[^\d]*(\d{5,9})/gi,/id[\s:#]*(\d{5,9})/gi,/andamento[^\d]*(\d{5,9})/gi].forEach(p=>{let m;while((m=p.exec(texto))!==null){if(m[1].length>=5&&m[1].length<=9)ids.add(m[1]);}});
+  return[...ids].slice(0,12);
+}
+
+async function lerPeca(){
+  const tipo=document.getElementById('ler-tipo').value;
+  const proc=document.getElementById('ler-proc').value.trim();
+  const texto=document.getElementById('ler-texto').value.trim();
+  if(!texto){alert('Cole o texto da peça');return}
+  const el=document.getElementById('ler-resultado');
+  el.innerHTML=`<div style="color:var(--cinza-3);font-size:13px;padding:20px;text-align:center"><span class="loading-dots">Processando peça</span></div>`;
+  const idsDetect=extrairIDs(texto);
+  const prompt=`Analise esta peça processual de revisão de PASEP e retorne APENAS um JSON válido:
+TIPO: ${tipo} | PROCESSO: ${proc||'n/d'}
+TEXTO: ${texto.substring(0,2000)}
+
+JSON esperado:
+{"resumo":"3 linhas","argumentos_contrarios":["arg1","arg2"],"prazos":["prazo com data"],"tags":["tag1","tag2"],"pontos_criticos":["ponto1"],"ids_detectados":${JSON.stringify(idsDetect)},"estrategia":"como responder"}
+
+Responda SOMENTE com o JSON, sem texto extra.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    let a={resumo:'OK',argumentos_contrarios:[],prazos:[],tags:[],pontos_criticos:[],ids_detectados:idsDetect,estrategia:''};
+    try{a=JSON.parse((d.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());}catch(e){}
+    const peca={id:proxId('peca'),tipo,proc,texto:texto.substring(0,3000),analise:a,data:new Date().toISOString().slice(0,10)};
+    db.pecas.push(peca);salvarDB();populaSelectPecas();atualizarBadge();
+    el.innerHTML=`
+      <div style="background:rgba(45,122,79,.08);border:1px solid rgba(45,122,79,.25);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:500;color:#4CAF82;margin-bottom:3px">✅ Peça processada e salva</div>
+        <div style="font-size:12px;color:var(--cinza-4)">${a.resumo}</div>
+      </div>
+      ${a.ids_detectados?.length?`<div style="margin-bottom:10px">
+        <div style="font-size:10px;color:var(--cinza-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">IDs detectados — adicione como movimentações</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${a.ids_detectados.map(id=>`<button onclick="preCadastrarMov('${id}','${proc}')" style="font-family:'Courier New',monospace;background:rgba(201,168,76,.1);color:var(--ouro);font-size:11px;padding:3px 9px;border-radius:4px;border:1px solid rgba(201,168,76,.2);cursor:pointer" title="Clique para cadastrar como movimentação">${id} +</button>`).join('')}</div>
+      </div>`:''}
+      ${a.argumentos_contrarios?.length?`<div style="margin-bottom:10px">
+        <div style="font-size:10px;color:var(--cinza-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Argumentos da parte contrária</div>
+        ${a.argumentos_contrarios.map(arg=>`<div style="font-size:12px;color:var(--cinza-4);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">• ${arg}</div>`).join('')}
+      </div>`:''}
+      ${a.prazos?.length?`<div style="margin-bottom:10px">
+        <div style="font-size:10px;color:#E57368;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">⚠ Prazos identificados</div>
+        ${a.prazos.map(p=>`<div style="font-size:12px;color:#E57368;padding:3px 0">• ${p}</div>`).join('')}
+      </div>`:''}
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;color:var(--cinza-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Tags detectadas</div>
+        <div>${(a.tags||[]).map(t=>`<span class="tag tag-ouro">${t}</span>`).join('')}</div>
+      </div>
+      ${a.estrategia?`<div style="background:rgba(201,168,76,.06);border-radius:var(--radius);padding:10px 12px"><div style="font-size:10px;color:var(--ouro);margin-bottom:4px">Estratégia recomendada</div><div style="font-size:12px;color:var(--cinza-4)">${a.estrategia}</div></div>`:''}`;
+  }catch(e){el.innerHTML=`<div style="color:#E57368;padding:20px">Erro de conexão.</div>`;}
+}
+
+function preCadastrarMov(id,proc){
+  document.getElementById('mov-id-input').value=id;
+  document.getElementById('mov-proc-input').value=proc||'';
+  document.getElementById('mov-data-input').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mov-desc-input').value='(preencher descrição)';
+  document.getElementById('mov-texto-input').value='';
+  abrirModal('modal-mov');
+}
+
+function processarTxt(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('ler-texto').value=e.target.result.substring(0,10000);
+    document.getElementById('txt-resultado').innerHTML=`<div class="alert alert-verde">✅ ${file.name} lido (${(file.size/1024).toFixed(1)} KB). Vá à aba "Colar texto" e clique em "Processar peça".</div>`;
+    switchTab('ler',0,document.querySelector('#ler-tabs-bar .tab'));
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+function renderPecasLidas(){
+  const el=document.getElementById('pecas-lidas-lista');
+  if(!db.pecas.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📁</div><div style="font-size:13px;color:var(--cinza-4)">Nenhuma peça processada</div></div>`;return}
+  el.innerHTML=db.pecas.map(p=>`<div class="piece-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="flex:1">
+        <div class="piece-title">${p.tipo} ${p.proc?'— '+p.proc.substring(0,25)+'…':''}</div>
+        <div class="piece-meta">${p.data}</div>
+        <div class="piece-preview">${p.analise?.resumo||p.texto.substring(0,100)}</div>
+        <div style="margin-top:5px">${(p.analise?.tags||[]).map(t=>`<span class="tag tag-ouro">${t}</span>`).join('')}</div>
+      </div>
+      <button class="btn btn-danger" onclick="excluirPeca(${p.id})">✕</button>
+    </div>
+  </div>`).join('');
+}
+function excluirPeca(id){if(confirm('Remover?')){db.pecas=db.pecas.filter(x=>x.id!==id);salvarDB();renderPecasLidas();populaSelectPecas();atualizarBadge();}}
+
+// ══ MOVIMENTAÇÕES ══
+function renderMovs(lista){
+  const el=document.getElementById('movs-lista');
+  const d=lista||db.movimentacoes;
+  if(!d.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🔢</div><div style="font-size:13px;color:var(--cinza-4)">Nenhuma movimentação cadastrada</div></div>`;return}
+  el.innerHTML=d.map(m=>`<div class="mov-item">
+    <div class="mov-id">${m.id}</div>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:500;color:var(--branco)">${m.desc}</div>
+      <div style="font-size:11px;color:var(--cinza-3);margin-top:2px">${m.data} · ${m.proc}</div>
+      ${m.texto?`<div style="font-size:11px;color:var(--cinza-4);margin-top:3px">${m.texto.substring(0,100)}…</div>`:''}
+    </div>
+    <button class="btn btn-danger" onclick="excluirMov('${m.id}')">✕</button>
+  </div>`).join('');
+}
+function filtrarMovs(){
+  const q=document.getElementById('busca-movs').value.toLowerCase();
+  const p=document.getElementById('filtro-proc-mov').value.toLowerCase();
+  renderMovs(db.movimentacoes.filter(m=>(!q||m.id.includes(q)||m.desc.toLowerCase().includes(q))&&(!p||m.proc.toLowerCase().includes(p))));
+}
+function abrirModalMov(){
+  ['id-input','proc-input','desc-input','texto-input'].forEach(f=>document.getElementById('mov-'+f).value='');
+  document.getElementById('mov-data-input').value=new Date().toISOString().slice(0,10);
+  abrirModal('modal-mov');
+}
+function salvarMov(){
+  const obj={id:document.getElementById('mov-id-input').value.trim(),data:document.getElementById('mov-data-input').value,proc:document.getElementById('mov-proc-input').value.trim(),desc:document.getElementById('mov-desc-input').value.trim(),texto:document.getElementById('mov-texto-input').value.trim()};
+  if(!obj.id||!obj.desc){alert('Preencha ID e descrição');return}
+  if(db.movimentacoes.find(m=>m.id===obj.id)){alert('ID já cadastrado');return}
+  db.movimentacoes.push(obj);salvarDB();fecharModal('modal-mov');renderMovs();atualizarBadge();
+}
+function excluirMov(id){if(confirm('Excluir?')){db.movimentacoes=db.movimentacoes.filter(x=>x.id!==id);salvarDB();renderMovs();atualizarBadge();}}
+function extrairMovsAutomatic(){
+  const texto=document.getElementById('ler-texto')?.value||'';
+  if(!texto){alert('Primeiro cole uma peça na aba "Ler peça"');return}
+  const ids=extrairIDs(texto);
+  if(!ids.length){alert('Nenhum ID detectado no texto.');return}
+  const proc=document.getElementById('ler-proc')?.value||'';
+  let n=0;
+  ids.forEach(id=>{if(!db.movimentacoes.find(m=>m.id===id)){db.movimentacoes.push({id,data:new Date().toISOString().slice(0,10),proc,desc:'(completar descrição)',texto:''});n++;}});
+  salvarDB();renderMovs();alert(`${n} movimentação(ões) adicionada(s). Complete as descrições.`);
+}
+
+// ══ GERAÇÃO DE MINUTA ══
+function renderTagsGeracao(){
+  const todas=[...new Set([...TAGS_PADRAO,...db.teses.flatMap(t=>t.tags)])];
+  const el=document.getElementById('gen-tags');if(!el)return;
+  el.innerHTML=todas.map(t=>`<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--cinza-4);cursor:pointer;padding:2px 0"><input type="checkbox" class="gen-tag-cb" value="${t}" onchange="atualizarPreviewContexto()"> ${t}</label>`).join('');
+}
+function populaSelectPecas(){
+  const sel=document.getElementById('gen-peca-ref');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Selecionar peça lida —</option>'+db.pecas.map(p=>`<option value="${p.id}"${p.id==cur?' selected':''}>${p.tipo} ${p.proc?'('+p.proc.substring(0,18)+')':''} — ${p.data}</option>`).join('');
+}
+
+function selecionarContexto(){
+  const tagsSel=[...document.querySelectorAll('.gen-tag-cb:checked')].map(cb=>cb.value);
+  const pecaId=Number(document.getElementById('gen-peca-ref')?.value)||null;
+  const procFiltro=document.getElementById('gen-proc')?.value||'';
+  // teses: score por overlap de tags, máx 3
+  const teses=db.teses.map(t=>({...t,score:t.tags.filter(tg=>tagsSel.includes(tg)).length})).sort((a,b)=>b.score-a.score).slice(0,3);
+  // minuta mais próxima
+  const minuta=db.minutas.find(m=>m.tags.some(t=>tagsSel.includes(t)))||db.minutas[0]||null;
+  // peça lida
+  const peca=db.pecas.find(p=>p.id===pecaId)||null;
+  // movimentações do processo
+  const movs=(procFiltro?db.movimentacoes.filter(m=>m.proc.includes(procFiltro)):db.movimentacoes).slice(0,15);
+  return{teses,minuta,peca,movs};
+}
+
+function atualizarPreviewContexto(){
+  const el=document.getElementById('gen-contexto-preview');if(!el)return;
+  const ctx=selecionarContexto();
+  const kb=(JSON.stringify(ctx).length/1024).toFixed(1);
+  el.innerHTML=`<span style="color:#4CAF82">✅ ${ctx.teses.length} teses</span> ${ctx.teses.map(t=>t.titulo.split('—')[0].substring(0,20)).join(', ')}<br>
+    <span style="color:${ctx.minuta?'#4CAF82':'#888'}">${ctx.minuta?'✅ 1 minuta modelo':'○ nenhuma minuta'}</span>${ctx.minuta?' — '+ctx.minuta.nome.substring(0,28):''}<br>
+    <span style="color:${ctx.peca?'#4CAF82':'#888'}">${ctx.peca?'✅ peça lida':'○ nenhuma peça'}</span>${ctx.peca?' — '+ctx.peca.tipo:''}<br>
+    <span style="color:#6BA8E8">🔢 ${ctx.movs.length} movimentações</span> incluídas<br>
+    <span style="color:${kb<8?'var(--ouro)':'#E57368'}">📏 ~${kb} KB de contexto</span> ${kb<8?'✓ dentro do limite':'⚠ próximo do limite — reduza tags'}`;
+}
+
+async function gerarMinuta(){
+  const tipo=document.getElementById('gen-tipo').value;
+  const cliente=document.getElementById('gen-cliente').value.trim();
+  const proc=document.getElementById('gen-proc').value.trim();
+  const instrucoes=document.getElementById('gen-instrucoes').value.trim();
+  const ctx=selecionarContexto();
+  const el=document.getElementById('gen-resultado');
+  el.innerHTML=`<div style="color:var(--cinza-3);font-size:13px;padding:20px;text-align:center"><span class="loading-dots">Gerando minuta com banco de conhecimento</span></div>`;
+
+  const tesesTxt=ctx.teses.length
+    ?ctx.teses.map((t,i)=>`=== TESE ${i+1}: ${t.titulo} ===\nTribunal: ${t.tribunal} | Jurisp: ${t.jurisp||'—'}\n${t.conteudo.substring(0,500)}`).join('\n\n')
+    :'(nenhuma tese selecionada — adicione tags)';
+
+  const minutaTxt=ctx.minuta
+    ?`=== MODELO DE REFERÊNCIA: ${ctx.minuta.nome} ===\n${ctx.minuta.conteudo.substring(0,700)}`
+    :'(nenhuma minuta modelo disponível)';
+
+  const pecaTxt=ctx.peca
+    ?`=== PEÇA DOS AUTOS (${ctx.peca.tipo}) ===\n${ctx.peca.texto.substring(0,2000)}\n\nArgumentos da parte contrária: ${(ctx.peca.analise?.argumentos_contrarios||[]).join(' | ')}`
+    :'(nenhuma peça processual referenciada)';
+
+  const movsTxt=ctx.movs.length
+    ?ctx.movs.map(m=>`[MOV-ID: ${m.id}] ${m.data} — ${m.desc}${m.texto?' | '+m.texto.substring(0,80):''}`).join('\n')
+    :'(nenhuma movimentação cadastrada)';
+
+  const prompt=`Você é o assistente jurídico do Dr. Adriano Paulo da Silva, OAB/PI nº 13.896, em Floriano/PI, especializado em revisão de PASEP.
+
+TIPO DE PEÇA: ${tipo}
+CLIENTE/AUTOR: ${cliente||'[NOME DO CLIENTE]'}
+PROCESSO: ${proc||'[NÚMERO DO PROCESSO]'}
+INSTRUÇÕES: ${instrucoes||'nenhuma instrução adicional'}
+
+${tesesTxt}
+
+${minutaTxt}
+
+${pecaTxt}
+
+=== MOVIMENTAÇÕES PROCESSUAIS (use esses IDs nas referências da peça) ===
+${movsTxt}
+
+REGRAS DE GERAÇÃO:
+1. Use obrigatoriamente as teses e jurisprudências fornecidas acima
+2. Ao mencionar movimentações dos autos, use: "(mov. ID [NÚMERO], de [DATA])" ou "conforme juntado sob o ID [NÚMERO]"
+3. Se há peça da parte contrária, refute os argumentos identificados
+4. Adapte a estrutura ao modelo de referência fornecido
+5. Inclua: endereçamento → qualificação → fatos → direito → pedidos → valor da causa → fechamento
+6. Feche com: Floriano/PI, ${new Date().toLocaleDateString('pt-BR')} — Dr. Adriano Paulo da Silva — OAB/PI nº 13.896
+7. Linguagem jurídica formal e técnica
+
+Gere a peça completa:`;
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    minutaGerada=d.content?.[0]?.text||'Erro na geração.';
+    el.innerHTML=`<div style="margin-bottom:10px;font-size:11px;color:var(--ouro)">✦ ${ctx.teses.length} teses · ${ctx.movs.length} movs · ${ctx.peca?'peça lida':'sem peça'} · ${ctx.minuta?'modelo':'sem modelo'}</div>
+      <div style="font-size:12px;line-height:1.8;color:var(--cinza-4);white-space:pre-wrap;background:var(--preto-3);border-radius:var(--radius);padding:14px;max-height:500px;overflow-y:auto;font-family:'Courier New',monospace">${minutaGerada}</div>`;
+    document.getElementById('gen-acoes').style.display='flex';
+  }catch(e){el.innerHTML=`<div style="color:#E57368;padding:20px">Erro de conexão.</div>`;}
+}
+
+function copiarMinuta(){if(minutaGerada){navigator.clipboard.writeText(minutaGerada);alert('Copiado!');}}
+function baixarMinuta(){
+  if(!minutaGerada)return;
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(minutaGerada);
+  a.download='minuta_pasep_'+new Date().toISOString().slice(0,10)+'.txt';a.click();
+}
+function salvarComoModelo(){
+  if(!minutaGerada)return;
+  const nome=prompt('Nome para esta minuta modelo:');if(!nome)return;
+  const tags=prompt('Tags (vírgula):','pasep');
+  const tipo=document.getElementById('gen-tipo').value.split('—')[0].trim();
+  db.minutas.push({id:proxId('minuta'),nome,tipo,tags:(tags||'').split(',').map(s=>s.trim()),conteudo:minutaGerada,obs:'Gerada pelo sistema em '+new Date().toLocaleDateString('pt-BR'),data:new Date().toISOString().slice(0,10)});
+  salvarDB();atualizarBadge();alert('Salva como modelo!');
+}
+
+// ══ CONFIG ══
+function renderConfig(){renderMemInfo('config-mem');}
+function exportarBanco(){
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(db,null,2));
+  a.download='cerebro_pasep_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function importarBanco(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{try{db=JSON.parse(e.target.result);salvarDB();renderPainel();atualizarBadge();populaSelectPecas();alert('Banco importado!');}catch(e){alert('Arquivo inválido.');}};
+  reader.readAsText(file);
+}
+function limparTudo(){
+  if(!confirm('Isso apagará todas as teses, minutas, peças e movimentações. Tem certeza?'))return;
+  localStorage.removeItem(DB_KEY);
+  db={teses:[],minutas:[],pecas:[],movimentacoes:[],nextId:{tese:1,minuta:1,peca:1}};
+  seedTeses();renderPainel();atualizarBadge();alert('Banco limpo. Teses padrão restauradas.');
+}
+</script>
+</body>
+</html>

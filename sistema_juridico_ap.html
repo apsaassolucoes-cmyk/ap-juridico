@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP Soluções Jurídicas — Sistema de Gestão</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ouro: #c9a84c;
+  --ouro-claro: #e8c96a;
+  --ouro-escuro: #a07830;
+  --preto: #0a0a0a;
+  --preto-card: #111111;
+  --preto-borda: #1e1e1e;
+  --cinza: #2a2a2a;
+  --cinza-texto: #888;
+  --branco: #f5f0e8;
+  --vermelho: #c0392b;
+  --verde: #27ae60;
+  --azul: #2980b9;
+  --laranja: #d35400;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--preto); color:var(--branco); font-family:'DM Sans',sans-serif; min-height:100vh; }
+
+/* HEADER */
+.header { background:linear-gradient(135deg,#0a0a0a,#1a1408); border-bottom:1px solid var(--ouro-escuro); padding:0 32px; display:flex; align-items:center; justify-content:space-between; height:64px; position:sticky; top:0; z-index:100; }
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-icon { width:36px; height:36px; background:var(--ouro); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.logo-text { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:var(--ouro); }
+.logo-sub { font-size:11px; color:var(--cinza-texto); letter-spacing:1px; text-transform:uppercase; }
+.header-right { display:flex; align-items:center; gap:12px; }
+.sync-status { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--cinza-texto); }
+.sync-dot { width:8px; height:8px; border-radius:50%; background:var(--verde); animation:pulse 2s infinite; }
+.sync-dot.offline { background:var(--vermelho); animation:none; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+/* NAV */
+.nav { background:var(--preto-card); border-bottom:1px solid var(--preto-borda); display:flex; overflow-x:auto; }
+.nav-item { padding:14px 20px; font-size:13px; font-weight:500; color:var(--cinza-texto); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all .2s; }
+.nav-item:hover { color:var(--branco); }
+.nav-item.active { color:var(--ouro); border-bottom-color:var(--ouro); }
+
+/* LAYOUT */
+.container { max-width:1200px; margin:0 auto; padding:28px 24px; }
+.page-title { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:600; color:var(--ouro); margin-bottom:4px; }
+.page-sub { font-size:13px; color:var(--cinza-texto); margin-bottom:24px; }
+
+/* CARDS */
+.card { background:var(--preto-card); border:1px solid var(--preto-borda); border-radius:12px; padding:24px; margin-bottom:20px; }
+.card-title { font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:600; color:var(--ouro); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+
+/* STAT CARDS */
+.stat-card { background:var(--preto-card); border:1px solid var(--preto-borda); border-radius:12px; padding:20px; text-align:center; }
+.stat-numero { font-family:'Cormorant Garamond',serif; font-size:36px; font-weight:700; color:var(--ouro); line-height:1; margin-bottom:6px; }
+.stat-label { font-size:12px; color:var(--cinza-texto); text-transform:uppercase; letter-spacing:.8px; }
+
+/* FORM */
+.form-group { margin-bottom:16px; }
+label { display:block; font-size:12px; font-weight:500; color:var(--cinza-texto); text-transform:uppercase; letter-spacing:.8px; margin-bottom:6px; }
+input,textarea,select { width:100%; background:#0f0f0f; border:1px solid var(--preto-borda); border-radius:8px; padding:10px 14px; color:var(--branco); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; transition:border-color .2s; }
+input:focus,textarea:focus,select:focus { border-color:var(--ouro-escuro); }
+textarea { resize:vertical; min-height:80px; }
+select option { background:#111; }
+
+/* BUTTONS */
+.btn { padding:10px 20px; border-radius:8px; border:none; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary { background:var(--ouro); color:var(--preto); }
+.btn-primary:hover { background:var(--ouro-claro); transform:translateY(-1px); }
+.btn-outline { background:transparent; border:1px solid var(--preto-borda); color:var(--cinza-texto); }
+.btn-outline:hover { border-color:var(--ouro-escuro); color:var(--branco); }
+.btn-danger { background:var(--vermelho); color:white; }
+.btn-success { background:var(--verde); color:white; }
+.btn-sm { padding:6px 12px; font-size:11px; border-radius:6px; }
+.btn:disabled { opacity:.5; cursor:not-allowed; transform:none!important; }
+
+/* TABLE */
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:10px 14px; font-size:11px; font-weight:600; color:var(--cinza-texto); text-transform:uppercase; letter-spacing:.8px; border-bottom:1px solid var(--preto-borda); }
+td { padding:12px 14px; border-bottom:1px solid #161616; color:var(--branco); vertical-align:middle; }
+tr:hover td { background:#161616; }
+tr:last-child td { border-bottom:none; }
+
+/* BADGES */
+.badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+.badge-ativo { background:rgba(39,174,96,.2); color:#2ecc71; border:1px solid rgba(39,174,96,.3); }
+.badge-arquivado { background:rgba(136,136,136,.2); color:#aaa; border:1px solid rgba(136,136,136,.3); }
+.badge-urgente { background:rgba(192,57,43,.2); color:#e74c3c; border:1px solid rgba(192,57,43,.3); }
+.badge-pendente { background:rgba(211,84,0,.2); color:#e67e22; border:1px solid rgba(211,84,0,.3); }
+.badge-pago { background:rgba(39,174,96,.2); color:#2ecc71; border:1px solid rgba(39,174,96,.3); }
+
+/* MODAL */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
+.modal { background:var(--preto-card); border:1px solid var(--preto-borda); border-radius:16px; padding:28px; width:100%; max-width:600px; max-height:90vh; overflow-y:auto; }
+.modal-title { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:600; color:var(--ouro); margin-bottom:20px; }
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--preto-borda); }
+
+/* TOAST */
+.toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+.toast { background:var(--preto-card); border:1px solid var(--preto-borda); border-radius:10px; padding:12px 16px; font-size:13px; min-width:280px; max-width:360px; display:flex; align-items:center; gap:10px; animation:slideIn .3s ease; box-shadow:0 8px 32px rgba(0,0,0,.5); }
+.toast.success { border-left:3px solid var(--verde); }
+.toast.error { border-left:3px solid var(--vermelho); }
+.toast.info { border-left:3px solid var(--azul); }
+@keyframes slideIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+/* EMPTY */
+.empty-state { text-align:center; padding:48px 24px; color:var(--cinza-texto); }
+.empty-state .icon { font-size:48px; margin-bottom:12px; opacity:.4; }
+
+.divider { border:none; border-top:1px solid var(--preto-borda); margin:20px 0; }
+
+/* DETAIL VIEW */
+.detail-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #161616; font-size:13px; }
+.detail-row:last-child { border-bottom:none; }
+.detail-label { color:var(--cinza-texto); }
+.detail-value { color:var(--branco); font-weight:500; text-align:right; }
+
+/* SEARCH */
+.search-bar { display:flex; gap:10px; margin-bottom:20px; }
+.search-bar input { flex:1; }
+
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+@media(max-width:768px) {
+  .grid-2,.grid-3,.grid-4 { grid-template-columns:1fr; }
+  .header { padding:0 16px; }
+  .container { padding:16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">⚖️</div>
+    <div>
+      <div class="logo-text">AP Soluções Jurídicas</div>
+      <div class="logo-sub">Adriano Paulo de Sá Silva | OAB/PI nº 13.896</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="sync-status">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncStatus">Conectando...</span>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="nav-item active" onclick="showPage('dashboard')">📊 Dashboard</div>
+  <div class="nav-item" onclick="showPage('clientes')">👥 Clientes</div>
+  <div class="nav-item" onclick="showPage('processos')">⚖️ Processos</div>
+  <div class="nav-item" onclick="showPage('prazos')">📅 Prazos</div>
+  <div class="nav-item" onclick="showPage('financeiro')">💰 Financeiro</div>
+</div>
+
+<div class="container">
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="tab-content active">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Visão geral do escritório — atualizado em tempo real</div>
+    <div class="grid-4" style="margin-bottom:24px;">
+      <div class="stat-card"><div class="stat-numero" id="statClientes">—</div><div class="stat-label">👥 Clientes</div></div>
+      <div class="stat-card"><div class="stat-numero" id="statProcessos">—</div><div class="stat-label">⚖️ Processos Ativos</div></div>
+      <div class="stat-card"><div class="stat-numero" id="statPrazos">—</div><div class="stat-label">📅 Prazos Urgentes</div></div>
+      <div class="stat-card"><div class="stat-numero" id="statFinanceiro">—</div><div class="stat-label">💰 A Receber</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">📅 Próximos Prazos</div>
+        <div id="dashPrazos"><div class="empty-state"><div class="icon">📅</div><div>Carregando...</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">💰 Honorários Pendentes</div>
+        <div id="dashFinanceiro"><div class="empty-state"><div class="icon">💰</div><div>Carregando...</div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚖️ Processos Recentes</div>
+      <div id="dashProcessos"><div class="empty-state"><div class="icon">⚖️</div><div>Carregando...</div></div></div>
+    </div>
+  </div>
+
+  <!-- CLIENTES -->
+  <div id="page-clientes" class="tab-content">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="page-title">Clientes</div>
+        <div class="page-sub">Cadastro completo de clientes</div>
+      </div>
+      <button class="btn btn-primary" onclick="abrirModalCliente()">➕ Novo Cliente</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchCliente" placeholder="Buscar por nome, CPF ou e-mail..." oninput="buscarClientes()">
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>E-mail</th><th>Cidade</th><th>Ações</th></tr></thead>
+          <tbody id="tabelaClientes"><tr><td colspan="6"><div class="empty-state"><div class="icon">👥</div><div>Carregando clientes...</div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROCESSOS -->
+  <div id="page-processos" class="tab-content">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="page-title">Processos</div>
+        <div class="page-sub">Gestão completa de processos judiciais e administrativos</div>
+      </div>
+      <button class="btn btn-primary" onclick="abrirModalProcesso()">➕ Novo Processo</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchProcesso" placeholder="Buscar por número, título ou área..." oninput="buscarProcessos()">
+      <select id="filtroStatus" onchange="buscarProcessos()" style="width:160px;">
+        <option value="">Todos os status</option>
+        <option value="ativo">Ativo</option>
+        <option value="arquivado">Arquivado</option>
+        <option value="encerrado">Encerrado</option>
+      </select>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nº Processo</th><th>Título</th><th>Cliente</th><th>Área</th><th>Vara/Comarca</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="tabelaProcessos"><tr><td colspan="7"><div class="empty-state"><div class="icon">⚖️</div><div>Carregando processos...</div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRAZOS -->
+  <div id="page-prazos" class="tab-content">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="page-title">Prazos</div>
+        <div class="page-sub">Controle de prazos processuais e administrativos</div>
+      </div>
+      <button class="btn btn-primary" onclick="abrirModalPrazo()">➕ Novo Prazo</button>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Título</th><th>Processo</th><th>Vencimento</th><th>Prioridade</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="tabelaPrazos"><tr><td colspan="6"><div class="empty-state"><div class="icon">📅</div><div>Carregando prazos...</div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINANCEIRO -->
+  <div id="page-financeiro" class="tab-content">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="page-title">Financeiro</div>
+        <div class="page-sub">Honorários, recebimentos e despesas</div>
+      </div>
+      <button class="btn btn-primary" onclick="abrirModalFinanceiro()">➕ Novo Lançamento</button>
+    </div>
+    <div class="grid-3" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-numero" id="finReceber" style="color:#e67e22;">—</div><div class="stat-label">A Receber</div></div>
+      <div class="stat-card"><div class="stat-numero" id="finRecebido" style="color:#2ecc71;">—</div><div class="stat-label">Recebido</div></div>
+      <div class="stat-card"><div class="stat-numero" id="finTotal">—</div><div class="stat-label">Total Geral</div></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Descrição</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="tabelaFinanceiro"><tr><td colspan="7"><div class="empty-state"><div class="icon">💰</div><div>Carregando lançamentos...</div></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAIS -->
+<div id="modalOverlay" class="modal-overlay" style="display:none;" onclick="fecharModal(event)">
+
+  <!-- MODAL CLIENTE -->
+  <div id="modalCliente" class="modal" style="display:none;" onclick="e=>e.stopPropagation()">
+    <div class="modal-title" id="modalClienteTitulo">Novo Cliente</div>
+    <input type="hidden" id="clienteId">
+    <div class="grid-2">
+      <div class="form-group"><label>Nome Completo *</label><input type="text" id="clienteNome" placeholder="Nome completo"></div>
+      <div class="form-group"><label>CPF</label><input type="text" id="clienteCpf" placeholder="000.000.000-00"></div>
+      <div class="form-group"><label>Telefone</label><input type="text" id="clienteTelefone" placeholder="(89) 99999-9999"></div>
+      <div class="form-group"><label>WhatsApp</label><input type="text" id="clienteWhatsapp" placeholder="(89) 99999-9999"></div>
+      <div class="form-group"><label>E-mail</label><input type="email" id="clienteEmail" placeholder="email@exemplo.com"></div>
+      <div class="form-group"><label>Cidade</label><input type="text" id="clienteCidade" placeholder="Floriano"></div>
+    </div>
+    <div class="form-group"><label>Endereço</label><input type="text" id="clienteEndereco" placeholder="Rua, número, bairro"></div>
+    <div class="form-group"><label>Observações</label><textarea id="clienteObs" placeholder="Informações adicionais..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharTodosModais()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCliente()">💾 Salvar Cliente</button>
+    </div>
+  </div>
+
+  <!-- MODAL PROCESSO -->
+  <div id="modalProcesso" class="modal" style="display:none;" onclick="e=>e.stopPropagation()">
+    <div class="modal-title" id="modalProcessoTitulo">Novo Processo</div>
+    <input type="hidden" id="processoId">
+    <div class="grid-2">
+      <div class="form-group"><label>Número do Processo</label><input type="text" id="processoNumero" placeholder="0000000-00.0000.0.00.0000"></div>
+      <div class="form-group"><label>Título / Identificação *</label><input type="text" id="processoTitulo" placeholder="Ex: Aposentadoria por Invalidez — João Silva"></div>
+      <div class="form-group">
+        <label>Cliente *</label>
+        <select id="processoClienteId"><option value="">Selecione o cliente...</option></select>
+      </div>
+      <div class="form-group">
+        <label>Área do Direito</label>
+        <select id="processoArea">
+          <option value="Previdenciário">Previdenciário</option>
+          <option value="Cível">Cível</option>
+          <option value="Administrativo">Administrativo</option>
+          <option value="Constitucional">Constitucional</option>
+          <option value="Consumidor">Consumidor</option>
+          <option value="Trabalhista">Trabalhista</option>
+          <option value="PASEP">PASEP</option>
+          <option value="RPPS">RPPS</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Vara</label><input type="text" id="processoVara" placeholder="Ex: Vara Federal de Floriano"></div>
+      <div class="form-group"><label>Comarca</label><input type="text" id="processoComarca" placeholder="Ex: Floriano/PI"></div>
+      <div class="form-group"><label>Valor da Causa (R$)</label><input type="number" id="processoValor" placeholder="0,00"></div>
+      <div class="form-group"><label>Honorários (R$)</label><input type="number" id="processoHonorarios" placeholder="0,00"></div>
+      <div class="form-group">
+        <label>Fase</label>
+        <select id="processoFase">
+          <option value="inicial">Inicial</option>
+          <option value="instrucao">Instrução</option>
+          <option value="sentenca">Sentença</option>
+          <option value="recurso">Recurso</option>
+          <option value="execucao">Execução</option>
+          <option value="encerrado">Encerrado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="processoStatus">
+          <option value="ativo">Ativo</option>
+          <option value="arquivado">Arquivado</option>
+          <option value="encerrado">Encerrado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Observações / Estratégia</label><textarea id="processoObs" placeholder="Estratégia, teses, observações importantes..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharTodosModais()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarProcesso()">💾 Salvar Processo</button>
+    </div>
+  </div>
+
+  <!-- MODAL PRAZO -->
+  <div id="modalPrazo" class="modal" style="display:none;" onclick="e=>e.stopPropagation()">
+    <div class="modal-title">Novo Prazo</div>
+    <input type="hidden" id="prazoId">
+    <div class="grid-2">
+      <div class="form-group"><label>Título do Prazo *</label><input type="text" id="prazoTitulo" placeholder="Ex: Prazo para recurso"></div>
+      <div class="form-group">
+        <label>Processo</label>
+        <select id="prazoProcessoId"><option value="">Selecione o processo...</option></select>
+      </div>
+      <div class="form-group"><label>Data de Vencimento *</label><input type="date" id="prazoData"></div>
+      <div class="form-group">
+        <label>Prioridade</label>
+        <select id="prazoPrioridade">
+          <option value="normal">Normal</option>
+          <option value="semana">Esta Semana</option>
+          <option value="hoje">Hoje</option>
+          <option value="urgente">Urgente</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Descrição / Observações</label><textarea id="prazoDesc" placeholder="Detalhes sobre o prazo..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharTodosModais()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarPrazo()">💾 Salvar Prazo</button>
+    </div>
+  </div>
+
+  <!-- MODAL FINANCEIRO -->
+  <div id="modalFinanceiro" class="modal" style="display:none;" onclick="e=>e.stopPropagation()">
+    <div class="modal-title">Novo Lançamento</div>
+    <input type="hidden" id="finId">
+    <div class="grid-2">
+      <div class="form-group"><label>Descrição *</label><input type="text" id="finDescricao" placeholder="Ex: Honorários contratuais"></div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="finTipo">
+          <option value="honorario_contratual">Honorário Contratual</option>
+          <option value="honorario_sucumbencial">Honorário Sucumbencial</option>
+          <option value="consulta">Consulta</option>
+          <option value="diligencia">Diligência</option>
+          <option value="despesa">Despesa</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Cliente</label>
+        <select id="finClienteId"><option value="">Selecione...</option></select>
+      </div>
+      <div class="form-group">
+        <label>Processo</label>
+        <select id="finProcessoId"><option value="">Selecione...</option></select>
+      </div>
+      <div class="form-group"><label>Valor (R$) *</label><input type="number" id="finValor" placeholder="0,00" step="0.01"></div>
+      <div class="form-group"><label>Data de Vencimento</label><input type="date" id="finVencimento"></div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="finStatus">
+          <option value="pendente">Pendente</option>
+          <option value="pago">Pago</option>
+          <option value="atrasado">Atrasado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Data de Pagamento</label><input type="date" id="finPagamento"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharTodosModais()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFinanceiro()">💾 Salvar Lançamento</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// =============================================
+// SUPABASE CONFIG
+// =============================================
+const SUPABASE_URL = 'https://ugipxpcflmjfoyzeksgi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_GhOf4HMts0-MPUn1W1vJLw_9HbdMXoj';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =============================================
+// ESTADO
+// =============================================
+let clientes = [];
+let processos = [];
+let prazos = [];
+let financeiro = [];
+
+// =============================================
+// INIT
+// =============================================
+async function init() {
+  await testarConexao();
+  await Promise.all([
+    carregarClientes(),
+    carregarProcessos(),
+    carregarPrazos(),
+    carregarFinanceiro()
+  ]);
+  atualizarDashboard();
+}
+
+async function testarConexao() {
+  try {
+    const { error } = await db.from('ap_clientes').select('id').limit(1);
+    if (error) throw error;
+    setSyncStatus(true, 'Supabase conectado ☁️');
+  } catch(e) {
+    setSyncStatus(false, 'Sem conexão');
+    showToast('Erro ao conectar com Supabase: ' + e.message, 'error');
+  }
+}
+
+function setSyncStatus(online, msg) {
+  const dot = document.getElementById('syncDot');
+  const status = document.getElementById('syncStatus');
+  dot.className = 'sync-dot' + (online ? '' : ' offline');
+  status.textContent = msg;
+}
+
+// =============================================
+// NAVEGAÇÃO
+// =============================================
+function showPage(nome) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + nome).classList.add('active');
+  event.target.classList.add('active');
+  if (nome === 'clientes') renderClientes();
+  if (nome === 'processos') renderProcessos();
+  if (nome === 'prazos') renderPrazos();
+  if (nome === 'financeiro') renderFinanceiro();
+}
+
+// =============================================
+// CLIENTES
+// =============================================
+async function carregarClientes() {
+  const { data, error } = await db.from('ap_clientes').select('*').order('nome');
+  if (!error) clientes = data || [];
+}
+
+function renderClientes(lista = clientes) {
+  const tbody = document.getElementById('tabelaClientes');
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">👥</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">Nenhum cliente cadastrado</div><div>Clique em "Novo Cliente" para começar.</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = lista.map(c => `
+    <tr>
+      <td><strong>${c.nome}</strong></td>
+      <td>${c.cpf || '—'}</td>
+      <td>${c.telefone || '—'}</td>
+      <td>${c.email || '—'}</td>
+      <td>${c.cidade || '—'}</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="editarCliente(${c.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="excluirCliente(${c.id})">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function buscarClientes() {
+  const q = document.getElementById('searchCliente').value.toLowerCase();
+  renderClientes(clientes.filter(c =>
+    c.nome?.toLowerCase().includes(q) ||
+    c.cpf?.includes(q) ||
+    c.email?.toLowerCase().includes(q)
+  ));
+}
+
+function abrirModalCliente(id = null) {
+  limparModalCliente();
+  document.getElementById('modalClienteTitulo').textContent = id ? 'Editar Cliente' : 'Novo Cliente';
+  document.getElementById('modalOverlay').style.display = 'flex';
+  document.getElementById('modalCliente').style.display = 'block';
+}
+
+function editarCliente(id) {
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('clienteId').value = c.id;
+  document.getElementById('clienteNome').value = c.nome || '';
+  document.getElementById('clienteCpf').value = c.cpf || '';
+  document.getElementById('clienteTelefone').value = c.telefone || '';
+  document.getElementById('clienteWhatsapp').value = c.whatsapp || '';
+  document.getElementById('clienteEmail').value = c.email || '';
+  document.getElementById('clienteCidade').value = c.cidade || '';
+  document.getElementById('clienteEndereco').value = c.endereco || '';
+  document.getElementById('clienteObs').value = c.observacoes || '';
+  abrirModalCliente(id);
+}
+
+async function salvarCliente() {
+  const nome = document.getElementById('clienteNome').value.trim();
+  if (!nome) { showToast('Nome é obrigatório!', 'error'); return; }
+  const id = document.getElementById('clienteId').value;
+  const dados = {
+    nome,
+    cpf: document.getElementById('clienteCpf').value.trim(),
+    telefone: document.getElementById('clienteTelefone').value.trim(),
+    whatsapp: document.getElementById('clienteWhatsapp').value.trim(),
+    email: document.getElementById('clienteEmail').value.trim(),
+    cidade: document.getElementById('clienteCidade').value.trim(),
+    endereco: document.getElementById('clienteEndereco').value.trim(),
+    observacoes: document.getElementById('clienteObs').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+  let error;
+  if (id) {
+    ({ error } = await db.from('ap_clientes').update(dados).eq('id', id));
+  } else {
+    ({ error } = await db.from('ap_clientes').insert(dados));
+  }
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast(id ? 'Cliente atualizado!' : 'Cliente cadastrado!', 'success');
+  fecharTodosModais();
+  await carregarClientes();
+  renderClientes();
+  atualizarDashboard();
+}
+
+async function excluirCliente(id) {
+  if (!confirm('Excluir este cliente? Os processos vinculados serão mantidos.')) return;
+  const { error } = await db.from('ap_clientes').delete().eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast('Cliente excluído.', 'info');
+  await carregarClientes();
+  renderClientes();
+  atualizarDashboard();
+}
+
+function limparModalCliente() {
+  ['clienteId','clienteNome','clienteCpf','clienteTelefone','clienteWhatsapp','clienteEmail','clienteCidade','clienteEndereco','clienteObs'].forEach(id => document.getElementById(id).value = '');
+}
+
+// =============================================
+// PROCESSOS
+// =============================================
+async function carregarProcessos() {
+  const { data, error } = await db.from('ap_processos').select('*, ap_clientes(nome)').order('created_at', { ascending: false });
+  if (!error) processos = data || [];
+}
+
+function renderProcessos(lista = processos) {
+  const tbody = document.getElementById('tabelaProcessos');
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">⚖️</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">Nenhum processo cadastrado</div><div>Clique em "Novo Processo" para começar.</div></div></td></tr>`;
+    return;
+  }
+  const areas = { 'Previdenciário':'🏥','Cível':'⚖️','Administrativo':'🏛️','Consumidor':'🛒','PASEP':'💼','RPPS':'👴','Trabalhista':'👷','Outro':'📁' };
+  tbody.innerHTML = lista.map(p => `
+    <tr>
+      <td style="font-family:monospace;font-size:12px;">${p.numero || '—'}</td>
+      <td><strong>${p.titulo}</strong></td>
+      <td>${p.ap_clientes?.nome || '—'}</td>
+      <td>${(areas[p.area] || '📁') + ' ' + (p.area || '—')}</td>
+      <td style="font-size:12px;">${p.vara || p.comarca || '—'}</td>
+      <td><span class="badge badge-${p.status || 'ativo'}">${p.status || 'ativo'}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="editarProcesso(${p.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="excluirProcesso(${p.id})">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function buscarProcessos() {
+  const q = document.getElementById('searchProcesso').value.toLowerCase();
+  const st = document.getElementById('filtroStatus').value;
+  renderProcessos(processos.filter(p =>
+    (!st || p.status === st) &&
+    (p.titulo?.toLowerCase().includes(q) || p.numero?.includes(q) || p.area?.toLowerCase().includes(q))
+  ));
+}
+
+async function abrirModalProcesso() {
+  limparModalProcesso();
+  document.getElementById('modalProcessoTitulo').textContent = 'Novo Processo';
+  await preencherSelectClientes('processoClienteId');
+  document.getElementById('modalOverlay').style.display = 'flex';
+  document.getElementById('modalProcesso').style.display = 'block';
+}
+
+async function editarProcesso(id) {
+  const p = processos.find(x => x.id === id);
+  if (!p) return;
+  await preencherSelectClientes('processoClienteId');
+  document.getElementById('processoId').value = p.id;
+  document.getElementById('processoNumero').value = p.numero || '';
+  document.getElementById('processoTitulo').value = p.titulo || '';
+  document.getElementById('processoClienteId').value = p.cliente_id || '';
+  document.getElementById('processoArea').value = p.area || 'Previdenciário';
+  document.getElementById('processoVara').value = p.vara || '';
+  document.getElementById('processoComarca').value = p.comarca || '';
+  document.getElementById('processoValor').value = p.valor_causa || '';
+  document.getElementById('processoHonorarios').value = p.honorarios || '';
+  document.getElementById('processoFase').value = p.fase || 'inicial';
+  document.getElementById('processoStatus').value = p.status || 'ativo';
+  document.getElementById('processoObs').value = p.observacoes || '';
+  document.getElementById('modalProcessoTitulo').textContent = 'Editar Processo';
+  document.getElementById('modalOverlay').style.display = 'flex';
+  document.getElementById('modalProcesso').style.display = 'block';
+}
+
+async function salvarProcesso() {
+  const titulo = document.getElementById('processoTitulo').value.trim();
+  if (!titulo) { showToast('Título é obrigatório!', 'error'); return; }
+  const id = document.getElementById('processoId').value;
+  const clienteId = document.getElementById('processoClienteId').value;
+  const dados = {
+    numero: document.getElementById('processoNumero').value.trim(),
+    titulo,
+    cliente_id: clienteId || null,
+    area: document.getElementById('processoArea').value,
+    vara: document.getElementById('processoVara').value.trim(),
+    comarca: document.getElementById('processoComarca').value.trim(),
+    valor_causa: parseFloat(document.getElementById('processoValor').value) || null,
+    honorarios: parseFloat(document.getElementById('processoHonorarios').value) || null,
+    fase: document.getElementById('processoFase').value,
+    status: document.getElementById('processoStatus').value,
+    observacoes: document.getElementById('processoObs').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+  let error;
+  if (id) {
+    ({ error } = await db.from('ap_processos').update(dados).eq('id', id));
+  } else {
+    ({ error } = await db.from('ap_processos').insert(dados));
+  }
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast(id ? 'Processo atualizado!' : 'Processo cadastrado!', 'success');
+  fecharTodosModais();
+  await carregarProcessos();
+  renderProcessos();
+  atualizarDashboard();
+}
+
+async function excluirProcesso(id) {
+  if (!confirm('Excluir este processo?')) return;
+  const { error } = await db.from('ap_processos').delete().eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast('Processo excluído.', 'info');
+  await carregarProcessos();
+  renderProcessos();
+  atualizarDashboard();
+}
+
+function limparModalProcesso() {
+  ['processoId','processoNumero','processoTitulo','processoVara','processoComarca','processoValor','processoHonorarios','processoObs'].forEach(id => document.getElementById(id).value = '');
+}
+
+// =============================================
+// PRAZOS
+// =============================================
+async function carregarPrazos() {
+  const { data, error } = await db.from('ap_prazos').select('*, ap_processos(titulo)').order('data_vencimento');
+  if (!error) prazos = data || [];
+}
+
+function renderPrazos() {
+  const tbody = document.getElementById('tabelaPrazos');
+  if (!prazos.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">📅</div><div>Nenhum prazo cadastrado.</div></div></td></tr>`;
+    return;
+  }
+  const hoje = new Date().toISOString().split('T')[0];
+  const priorBadge = { urgente:'badge-urgente', hoje:'badge-urgente', semana:'badge-pendente', normal:'badge-ativo' };
+  tbody.innerHTML = prazos.map(p => {
+    const vencido = p.data_vencimento < hoje && p.status === 'pendente';
+    return `<tr style="${vencido ? 'background:#1a0808;' : ''}">
+      <td><strong>${p.titulo}</strong></td>
+      <td style="font-size:12px;">${p.ap_processos?.titulo || '—'}</td>
+      <td style="${vencido ? 'color:#e74c3c;font-weight:600;' : ''}">${formatarData(p.data_vencimento)}${vencido ? ' ⚠️' : ''}</td>
+      <td><span class="badge ${priorBadge[p.prioridade] || 'badge-ativo'}">${p.prioridade || 'normal'}</span></td>
+      <td><span class="badge ${p.status === 'concluido' ? 'badge-pago' : 'badge-pendente'}">${p.status || 'pendente'}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          ${p.status !== 'concluido' ? `<button class="btn btn-success btn-sm" onclick="concluirPrazo(${p.id})">✅</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="excluirPrazo(${p.id})">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function abrirModalPrazo() {
+  document.getElementById('prazoId').value = '';
+  document.getElementById('prazoTitulo').value = '';
+  document.getElementById('prazoData').value = '';
+  document.getElementById('prazoDesc').value = '';
+  document.getElementById('prazoPrioridade').value = 'normal';
+  await preencherSelectProcessos('prazoProcessoId');
+  document.getElementById('modalOverlay').style.display = 'flex';
+  document.getElementById('modalPrazo').style.display = 'block';
+}
+
+async function salvarPrazo() {
+  const titulo = document.getElementById('prazoTitulo').value.trim();
+  const data = document.getElementById('prazoData').value;
+  if (!titulo || !data) { showToast('Título e data são obrigatórios!', 'error'); return; }
+  const processoId = document.getElementById('prazoProcessoId').value;
+  const dados = {
+    titulo,
+    data_vencimento: data,
+    processo_id: processoId || null,
+    prioridade: document.getElementById('prazoPrioridade').value,
+    descricao: document.getElementById('prazoDesc').value.trim(),
+    status: 'pendente'
+  };
+  const { error } = await db.from('ap_prazos').insert(dados);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast('Prazo cadastrado!', 'success');
+  fecharTodosModais();
+  await carregarPrazos();
+  renderPrazos();
+  atualizarDashboard();
+}
+
+async function concluirPrazo(id) {
+  const { error } = await db.from('ap_prazos').update({ status: 'concluido' }).eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast('Prazo concluído! ✅', 'success');
+  await carregarPrazos();
+  renderPrazos();
+  atualizarDashboard();
+}
+
+async function excluirPrazo(id) {
+  if (!confirm('Excluir este prazo?')) return;
+  const { error } = await db.from('ap_prazos').delete().eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast('Prazo excluído.', 'info');
+  await carregarPrazos();
+  renderPrazos();
+}
+
+// =============================================
+// FINANCEIRO
+// =============================================
+async function carregarFinanceiro() {
+  const { data, error } = await db.from('ap_financeiro').select('*, ap_clientes(nome), ap_processos(titulo)').order('created_at', { ascending: false });
+  if (!error) financeiro = data || [];
+}
+
+function renderFinanceiro() {
+  const tbody = document.getElementById('tabelaFinanceiro');
+  const pendente = financeiro.filter(f => f.status === 'pendente').reduce((s, f) => s + Number(f.valor), 0);
+  const pago = financeiro.filter(f => f.status === 'pago').reduce((s, f) => s + Number(f.valor), 0);
+  document.getElementById('finReceber').textContent = formatarMoeda(pendente);
+  document.getElementById('finRecebido').textContent = formatarMoeda(pago);
+  document.getElementById('finTotal').textContent = formatarMoeda(pendente + pago);
+  if (!financeiro.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">💰</div><div>Nenhum lançamento cadastrado.</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = financeiro.map(f => `
+    <tr>
+      <td><strong>${f.descricao || '—'}</strong></td>
+      <td>${f.ap_clientes?.nome || '—'}</td>
+      <td style="font-size:12px;">${f.tipo?.replace(/_/g,' ') || '—'}</td>
+      <td style="font-weight:600;">${formatarMoeda(f.valor)}</td>
+      <td>${f.data_vencimento ? formatarData(f.data_vencimento) : '—'}</td>
+      <td><span class="badge ${f.status === 'pago' ? 'badge-pago' : f.status === 'atrasado' ? 'badge-urgente' : 'badge-pendente'}">${f.status || 'pendente'}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          ${f.status !== 'pago' ? `<button class="btn btn-success btn-sm" onclick="marcarPago(${f.id})">✅ Pago</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="excluirFinanceiro(${f.id})">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function abrirModalFinanceiro() {
+  ['finId','finDescricao','finValor','finVencimento','finPagamento'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('finStatus').value = 'pendente';
+  document.getElementById('finTipo').value = 'honorario_contratual';
+  await preencherSelectClientes('finClienteId');
+  await preencherSelectProcessos('finProcessoId');
+  document.getElementById('modalOverlay').style.display = 'flex';
+  document.getElementById('modalFinanceiro').style.display = 'block';
+}
+
+async function salvarFinanceiro() {
+  const descricao = document.getElementById('finDescricao').value.trim();
+  const valor = parseFloat(document.getElementById('finValor').value);
+  if (!descricao || !valor) { showToast('Descrição e valor são obrigatórios!', 'error'); return; }
+  const dados = {
+    descricao,
+    valor,
+    tipo: document.getElementById('finTipo').value,
+    cliente_id: document.getElementById('finClienteId').value || null,
+    processo_id: document.getElementById('finProcessoId').value || null,
+    status: document.getElementById('finStatus').value,
+    data_vencimento: document.getElementById('finVencimento').value || null,
+    data_pagamento: document.getElementById('finPagamento').value || null
+  };
+  const { error } = await db.from('ap_financeiro').insert(dados);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast('Lançamento salvo!', 'success');
+  fecharTodosModais();
+  await carregarFinanceiro();
+  renderFinanceiro();
+  atualizarDashboard();
+}
+
+async function marcarPago(id) {
+  const { error } = await db.from('ap_financeiro').update({ status: 'pago', data_pagamento: new Date().toISOString().split('T')[0] }).eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast('Marcado como pago! ✅', 'success');
+  await carregarFinanceiro();
+  renderFinanceiro();
+  atualizarDashboard();
+}
+
+async function excluirFinanceiro(id) {
+  if (!confirm('Excluir este lançamento?')) return;
+  const { error } = await db.from('ap_financeiro').delete().eq('id', id);
+  if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+  showToast('Lançamento excluído.', 'info');
+  await carregarFinanceiro();
+  renderFinanceiro();
+}
+
+// =============================================
+// DASHBOARD
+// =============================================
+function atualizarDashboard() {
+  document.getElementById('statClientes').textContent = clientes.length;
+  document.getElementById('statProcessos').textContent = processos.filter(p => p.status === 'ativo').length;
+  const hoje = new Date().toISOString().split('T')[0];
+  const urgentes = prazos.filter(p => p.status === 'pendente' && (p.prioridade === 'urgente' || p.data_vencimento <= hoje)).length;
+  document.getElementById('statPrazos').textContent = urgentes;
+  const aReceber = financeiro.filter(f => f.status === 'pendente').reduce((s, f) => s + Number(f.valor), 0);
+  document.getElementById('statFinanceiro').textContent = formatarMoeda(aReceber);
+
+  // Próximos prazos
+  const proxPrazos = prazos.filter(p => p.status === 'pendente').slice(0, 5);
+  document.getElementById('dashPrazos').innerHTML = proxPrazos.length ? proxPrazos.map(p => `
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #161616;font-size:13px;">
+      <div><strong>${p.titulo}</strong><div style="font-size:11px;color:var(--cinza-texto);">${p.ap_processos?.titulo || '—'}</div></div>
+      <div style="text-align:right;color:${p.data_vencimento < hoje ? 'var(--vermelho)' : 'var(--ouro)'};">${formatarData(p.data_vencimento)}</div>
+    </div>`).join('') : '<div class="empty-state"><div class="icon">📅</div><div>Nenhum prazo pendente!</div></div>';
+
+  // Financeiro dashboard
+  const finPend = financeiro.filter(f => f.status === 'pendente').slice(0, 5);
+  document.getElementById('dashFinanceiro').innerHTML = finPend.length ? finPend.map(f => `
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #161616;font-size:13px;">
+      <div><strong>${f.descricao}</strong><div style="font-size:11px;color:var(--cinza-texto);">${f.ap_clientes?.nome || '—'}</div></div>
+      <div style="color:var(--ouro);font-weight:600;">${formatarMoeda(f.valor)}</div>
+    </div>`).join('') : '<div class="empty-state"><div class="icon">💰</div><div>Nenhum honorário pendente!</div></div>';
+
+  // Processos recentes
+  const procRec = processos.filter(p => p.status === 'ativo').slice(0, 5);
+  document.getElementById('dashProcessos').innerHTML = procRec.length ? `
+    <div class="table-wrap"><table>
+    <thead><tr><th>Processo</th><th>Área</th><th>Cliente</th><th>Fase</th></tr></thead>
+    <tbody>${procRec.map(p => `<tr>
+      <td><strong>${p.titulo}</strong>${p.numero ? `<div style="font-size:11px;color:var(--cinza-texto);font-family:monospace;">${p.numero}</div>` : ''}</td>
+      <td>${p.area || '—'}</td>
+      <td>${p.ap_clientes?.nome || '—'}</td>
+      <td>${p.fase || '—'}</td>
+    </tr>`).join('')}</tbody></table></div>` :
+    '<div class="empty-state"><div class="icon">⚖️</div><div>Nenhum processo ativo.</div></div>';
+}
+
+// =============================================
+// HELPERS
+// =============================================
+async function preencherSelectClientes(selectId) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '<option value="">Selecione o cliente...</option>' +
+    clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+}
+
+async function preencherSelectProcessos(selectId) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '<option value="">Selecione o processo...</option>' +
+    processos.map(p => `<option value="${p.id}">${p.titulo}</option>`).join('');
+}
+
+function formatarData(d) {
+  if (!d) return '—';
+  const [y, m, dd] = d.split('-');
+  return `${dd}/${m}/${y}`;
+}
+
+function formatarMoeda(v) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0);
+}
+
+// =============================================
+// MODAIS
+// =============================================
+function fecharModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) fecharTodosModais();
+}
+
+function fecharTodosModais() {
+  document.getElementById('modalOverlay').style.display = 'none';
+  document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+}
+
+// =============================================
+// TOAST
+// =============================================
+function showToast(msg, tipo = 'info') {
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${tipo}`;
+  toast.innerHTML = `<span>${icons[tipo]}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// =============================================
+// START
+// =============================================
+init();
+</script>
+</body>
+</html>

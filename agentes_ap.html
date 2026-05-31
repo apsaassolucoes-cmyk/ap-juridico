@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentes IA — AP Soluções Jurídicas</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ouro:#c9a84c; --ouro-claro:#e8c96a; --ouro-escuro:#a07830;
+  --preto:#0a0a0a; --preto-card:#111111; --preto-borda:#1e1e1e;
+  --cinza:#2a2a2a; --cinza-texto:#888; --branco:#f5f0e8;
+  --vermelho:#c0392b; --verde:#27ae60; --azul:#2980b9; --laranja:#d35400;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--preto);color:var(--branco);font-family:'DM Sans',sans-serif;min-height:100vh;}
+
+.header{background:linear-gradient(135deg,#0a0a0a,#1a1408);border-bottom:1px solid var(--ouro-escuro);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:var(--ouro);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--ouro);}
+.logo-sub{font-size:11px;color:var(--cinza-texto);letter-spacing:1px;text-transform:uppercase;}
+.sync-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--cinza-texto);}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--verde);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.agentes-grid{display:grid;grid-template-columns:280px 1fr;gap:0;min-height:calc(100vh - 64px);}
+
+/* SIDEBAR */
+.sidebar{background:var(--preto-card);border-right:1px solid var(--preto-borda);padding:20px 0;overflow-y:auto;}
+.sidebar-title{font-size:11px;font-weight:600;color:var(--cinza-texto);text-transform:uppercase;letter-spacing:1px;padding:0 20px;margin-bottom:12px;}
+.agente-item{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;transition:all .2s;border-left:3px solid transparent;}
+.agente-item:hover{background:var(--cinza);color:var(--branco);}
+.agente-item.active{background:#1a1408;border-left-color:var(--ouro);color:var(--branco);}
+.agente-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.agente-nome{font-size:13px;font-weight:600;color:var(--branco);}
+.agente-desc{font-size:11px;color:var(--cinza-texto);margin-top:2px;}
+.sidebar-divider{border:none;border-top:1px solid var(--preto-borda);margin:12px 0;}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;height:calc(100vh - 64px);}
+.agente-header{padding:20px 28px;border-bottom:1px solid var(--preto-borda);background:var(--preto-card);display:flex;align-items:center;gap:16px;}
+.agente-header-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.agente-header-nome{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--ouro);}
+.agente-header-sub{font-size:12px;color:var(--cinza-texto);margin-top:2px;}
+.agente-actions{margin-left:auto;display:flex;gap:8px;}
+
+/* CHAT */
+.chat-area{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:16px;}
+.msg{display:flex;gap:12px;max-width:85%;}
+.msg.user{flex-direction:row-reverse;align-self:flex-end;}
+.msg-bubble{padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6;}
+.msg.ia .msg-bubble{background:var(--preto-card);border:1px solid var(--preto-borda);border-radius:4px 12px 12px 12px;}
+.msg.user .msg-bubble{background:var(--ouro-escuro);color:var(--branco);border-radius:12px 4px 12px 12px;}
+.msg-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:4px;}
+.msg.ia .msg-avatar{background:var(--cinza);}
+.msg.user .msg-avatar{background:var(--ouro-escuro);}
+.msg-time{font-size:10px;color:var(--cinza-texto);margin-top:4px;text-align:right;}
+.typing{display:flex;gap:4px;align-items:center;padding:12px 16px;background:var(--preto-card);border:1px solid var(--preto-borda);border-radius:4px 12px 12px 12px;width:fit-content;}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--cinza-texto);animation:typing .8s infinite;}
+.typing span:nth-child(2){animation-delay:.2s;}
+.typing span:nth-child(3){animation-delay:.4s;}
+@keyframes typing{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* INPUT */
+.chat-input-area{padding:16px 28px;border-top:1px solid var(--preto-borda);background:var(--preto-card);}
+.quick-actions{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.quick-btn{padding:6px 12px;background:var(--cinza);border:1px solid var(--preto-borda);border-radius:20px;color:var(--cinza-texto);font-size:11px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.quick-btn:hover{border-color:var(--ouro-escuro);color:var(--branco);}
+.input-row{display:flex;gap:10px;align-items:flex-end;}
+.chat-input{flex:1;background:#0f0f0f;border:1px solid var(--preto-borda);border-radius:10px;padding:10px 14px;color:var(--branco);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:none;min-height:44px;max-height:120px;transition:border-color .2s;}
+.chat-input:focus{border-color:var(--ouro-escuro);}
+.send-btn{width:44px;height:44px;background:var(--ouro);border:none;border-radius:10px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.send-btn:hover{background:var(--ouro-claro);}
+.send-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* CONTEXTO PANEL */
+.contexto-panel{background:#0f0f0f;border:1px solid var(--preto-borda);border-radius:10px;padding:14px;margin-bottom:12px;font-size:12px;}
+.contexto-title{font-size:11px;font-weight:600;color:var(--ouro);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+.contexto-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1a1a1a;color:var(--cinza-texto);}
+.contexto-item:last-child{border-bottom:none;}
+.contexto-val{color:var(--branco);font-weight:500;}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--preto-card);border:1px solid var(--preto-borda);border-radius:10px;padding:12px 16px;font-size:13px;min-width:280px;max-width:360px;display:flex;align-items:center;gap:10px;animation:slideIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.toast.success{border-left:3px solid var(--verde);}
+.toast.error{border-left:3px solid var(--vermelho);}
+.toast.info{border-left:3px solid var(--azul);}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+.btn{padding:8px 16px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--ouro);color:var(--preto);}
+.btn-primary:hover{background:var(--ouro-claro);}
+.btn-outline{background:transparent;border:1px solid var(--preto-borda);color:var(--cinza-texto);}
+.btn-outline:hover{border-color:var(--ouro-escuro);color:var(--branco);}
+.btn-whatsapp{background:#25D366;color:white;}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px;}
+
+pre{background:#0a0a0a;border:1px solid var(--preto-borda);border-radius:8px;padding:12px;font-size:12px;overflow-x:auto;white-space:pre-wrap;margin:8px 0;color:#a0c878;}
+
+@media(max-width:768px){
+  .agentes-grid{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    <div>
+      <div class="logo-text">AP Soluções Jurídicas</div>
+      <div class="logo-sub">Central de Agentes IA</div>
+    </div>
+  </div>
+  <div class="sync-status">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncStatus">Conectando...</span>
+  </div>
+</div>
+
+<div class="agentes-grid">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-title">Agentes Jurídicos</div>
+
+    <div class="agente-item active" onclick="ativarAgente('guardiao')" id="item-guardiao">
+      <div class="agente-icon" style="background:#1a0808;">🔴</div>
+      <div><div class="agente-nome">Guardião de Prazos</div><div class="agente-desc">Analisa e alerta prazos críticos</div></div>
+    </div>
+
+    <div class="agente-item" onclick="ativarAgente('pasep')" id="item-pasep">
+      <div class="agente-icon" style="background:#0a1a0a;">💼</div>
+      <div><div class="agente-nome">Especialista PASEP</div><div class="agente-desc">Teses, índices e jurisprudência</div></div>
+    </div>
+
+    <div class="agente-item" onclick="ativarAgente('rpps')" id="item-rpps">
+      <div class="agente-icon" style="background:#0a0a1a;">👴</div>
+      <div><div class="agente-nome">Especialista RPPS</div><div class="agente-desc">Pensão, aposentadoria, paridade</div></div>
+    </div>
+
+    <div class="agente-item" onclick="ativarAgente('pecas')" id="item-pecas">
+      <div class="agente-icon" style="background:#1a1208;">📄</div>
+      <div><div class="agente-nome">Gerador de Peças</div><div class="agente-desc">Petições, recursos, pareceres</div></div>
+    </div>
+
+    <div class="agente-item" onclick="ativarAgente('jurisprudencia')" id="item-jurisprudencia">
+      <div class="agente-icon" style="background:#0a1218;">🏛️</div>
+      <div><div class="agente-nome">Monitor Jurisprudência</div><div class="agente-desc">STF, STJ, TRF1, TJ/PI</div></div>
+    </div>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-title">Atendimento</div>
+
+    <div class="agente-item" onclick="ativarAgente('frontdesk')" id="item-frontdesk">
+      <div class="agente-icon" style="background:#121208;">🤝</div>
+      <div><div class="agente-nome">Front-Desk IA</div><div class="agente-desc">Triagem e análise de novos casos</div></div>
+    </div>
+
+    <div class="agente-item" onclick="ativarAgente('whatsapp')" id="item-whatsapp">
+      <div class="agente-icon" style="background:#0a1a0f;">📱</div>
+      <div><div class="agente-nome">Notificador WhatsApp</div><div class="agente-desc">Avisa clientes sobre movimentações</div></div>
+    </div>
+
+    <div class="agente-item" onclick="ativarAgente('atendente')" id="item-atendente">
+      <div class="agente-icon" style="background:#1a0a18;">💬</div>
+      <div><div class="agente-nome">Atendente Virtual</div><div class="agente-desc">Respostas automáticas ao cliente</div></div>
+    </div>
+  </div>
+
+  <!-- MAIN CHAT -->
+  <div class="main">
+    <div class="agente-header">
+      <div class="agente-header-icon" id="agenteHeaderIcon" style="background:#1a0808;">🔴</div>
+      <div>
+        <div class="agente-header-nome" id="agenteHeaderNome">Guardião de Prazos</div>
+        <div class="agente-header-sub" id="agenteHeaderSub">Analisa prazos críticos com base nos seus processos reais</div>
+      </div>
+      <div class="agente-actions">
+        <button class="btn btn-outline btn-sm" onclick="limparChat()">🗑️ Limpar</button>
+        <button class="btn btn-outline btn-sm" onclick="exportarConversa()">📋 Copiar</button>
+      </div>
+    </div>
+
+    <div class="chat-area" id="chatArea"></div>
+
+    <div class="chat-input-area">
+      <div id="quickActions" class="quick-actions"></div>
+      <div class="input-row">
+        <textarea class="chat-input" id="chatInput" placeholder="Digite sua pergunta..." rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensagem()}"
+          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="enviarMensagem()">➤</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// =============================================
+// CONFIG
+// =============================================
+const SUPABASE_URL = 'https://ugipxpcflmjfoyzeksgi.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_GhOf4HMts0-MPUn1W1vJLw_9HbdMXoj';
+const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =============================================
+// ESTADO
+// =============================================
+let agenteAtual = 'guardiao';
+let historicos = {};
+let dadosEscritorio = { clientes:[], processos:[], prazos:[], financeiro:[] };
+
+// =============================================
+// AGENTES CONFIG
+// =============================================
+const AGENTES = {
+  guardiao: {
+    nome: 'Guardião de Prazos',
+    icon: '🔴',
+    bg: '#1a0808',
+    sub: 'Analisa prazos críticos com base nos seus processos reais',
+    quickActions: ['📅 Prazos urgentes hoje', '⚠️ Prazos desta semana', '📊 Relatório completo de prazos', '🔔 Simular notificação de prazo'],
+    systemPrompt: (ctx) => `Você é o Guardião de Prazos do escritório AP Soluções Jurídicas, do Dr. Adriano Paulo de Sá Silva (OAB/PI nº 13.896), Floriano/PI.
+
+Sua função é analisar, alertar e gerenciar prazos processuais com precisão cirúrgica. Você conhece profundamente o CPC, prazos do PJe, e-Proc e as peculiaridades dos tribunais do Piauí (TJPI, TRF1ª Região, JEF Floriano).
+
+DADOS REAIS DO ESCRITÓRIO HOJE (${new Date().toLocaleDateString('pt-BR')}):
+${ctx}
+
+REGRAS:
+- Sempre calcule prazos considerando dias úteis quando aplicável
+- Destaque em NEGRITO prazos que vencem em menos de 5 dias
+- Sugira ações concretas para cada prazo
+- Mencione o processo e cliente específico ao analisar
+- Use linguagem direta e objetiva
+- Ao final de alertas críticos, sugira envio de notificação WhatsApp ao cliente`
+  },
+
+  pasep: {
+    nome: 'Especialista PASEP',
+    icon: '💼',
+    bg: '#0a1a0a',
+    sub: 'Teses, índices e jurisprudência PASEP acumulados',
+    quickActions: ['📊 Índices Plano Verão', '💰 Calcular correção Collor I', '⚖️ Teses de prescrição PASEP', '🏛️ Jurisprudência STF PASEP'],
+    systemPrompt: (ctx) => `Você é o Especialista PASEP do escritório AP Soluções Jurídicas, Dr. Adriano Paulo de Sá Silva (OAB/PI nº 13.896).
+
+Você é especialista máximo em revisão de saldos PASEP. Domina todas as teses jurídicas, índices de correção e jurisprudência sobre o tema.
+
+TESES E ÍNDICES ACUMULADOS:
+• Plano Verão (jan/1989): IPC 70,28% vs 42,72% aplicado → diferença de 27,56%
+• Collor I (mar/1990): IPC 84,32% vs 44,80% aplicado → diferença de 39,52%  
+• Collor II (fev/1991): 21,87% vs 12,92% aplicado → diferença de 8,95%
+• Prescrição: quinquenal (Decreto 20.910/32) — apenas parcelas, não o fundo de direito
+• Competência: JEF quando valor ≤ 60 SM; Justiça Federal comum acima
+• STF: RE 1.505.996 — imprescritibilidade do fundo de direito
+• STJ: AgRg no AREsp — legitimidade do Banco do Brasil como réu
+• Taxa SELIC para atualização pós-ajuizamento
+
+DADOS DO ESCRITÓRIO:
+${ctx}
+
+Responda com precisão técnica, citando fundamentos legais e jurisprudência. Sugira estratégias processuais quando pertinente.`
+  },
+
+  rpps: {
+    nome: 'Especialista RPPS',
+    icon: '👴',
+    bg: '#0a0a1a',
+    sub: 'Pensão por morte, aposentadoria, paridade e integralidade',
+    quickActions: ['⚖️ Teses pensão por morte RPPS', '📐 Calcular remuneração paradigma', '🏛️ EC 41/2003 — direito adquirido', '💼 Caso Edna Menezes — PIAUÍPREV'],
+    systemPrompt: (ctx) => `Você é o Especialista RPPS do escritório AP Soluções Jurídicas, Dr. Adriano Paulo de Sá Silva (OAB/PI nº 13.896).
+
+Você domina o Regime Próprio de Previdência Social, especialmente do Estado do Piauí (PIAUÍPREV/AGESPREV).
+
+TESES E FUNDAMENTOS ACUMULADOS:
+• Tempus regit actum: lei vigente na data do óbito rege o benefício
+• EC 41/2003 art. 7º: integralidade e paridade como direito adquirido para quem cumpriu requisitos até 31/12/2003
+• Imprescritibilidade do fundo de direito: STF ADI 6.096/DF, RE 1.505.996
+• Venire contra factum proprium: reconhecimento anterior do INSS vincula RPPS
+• União estável: prova por início de prova material + testemunhal
+• Paradigma: maior remuneração do cargo, incluindo vantagens permanentes
+• Parcelas vencidas: contam da data do requerimento administrativo
+• PIAUÍPREV: substituto processual do Estado do Piauí para fins previdenciários
+
+CASO ATIVO — Edna Maria Rodrigues de Menezes vs Estado PI/PIAUÍPREV:
+- Remuneração paradigma: R$ 19.369,05 (médico SESAPI)
+- Valor da causa: R$ 1.368.000
+- LAI protocolo: 03378202600076778 (prazo 17/06/2026)
+- Fundamento: tempus regit actum (óbito em 2000)
+
+DADOS DO ESCRITÓRIO:
+${ctx}
+
+Cite sempre: lei aplicável, EC, súmulas e precedentes. Seja cirúrgico nas teses.`
+  },
+
+  pecas: {
+    nome: 'Gerador de Peças',
+    icon: '📄',
+    bg: '#1a1208',
+    sub: 'Petições, recursos e pareceres no padrão AP Soluções Jurídicas',
+    quickActions: ['📝 Gerar petição inicial PASEP', '📋 Minutar recurso de apelação', '⚖️ Redigir contestação', '📄 Gerar parecer jurídico'],
+    systemPrompt: (ctx) => `Você é o Gerador de Peças do escritório AP Soluções Jurídicas, Dr. Adriano Paulo de Sá Silva (OAB/PI nº 13.896), Floriano/PI.
+
+Você redige peças processuais no padrão exato do escritório:
+- Fonte: Arial Nova 12pt
+- Parágrafo com recuo de 4cm na primeira linha
+- Alinhamento justificado
+- Linguagem técnica e objetiva
+- Fundamentação robusta com doutrina e jurisprudência
+- Pedidos claros e específicos
+
+ÁREAS DE ATUAÇÃO: Previdenciário, Cível, Administrativo, Constitucional, Consumidor, PASEP, RPPS
+
+DADOS DO ESCRITÓRIO (para personalizar as peças):
+${ctx}
+
+Ao gerar peças:
+1. Pergunte os dados necessários se não fornecidos
+2. Use os dados reais dos clientes e processos quando disponíveis
+3. Cite jurisprudência atualizada
+4. Inclua todos os requisitos formais
+5. Adapte ao tribunal específico (TJPI, TRF1, JEF, STJ)`
+  },
+
+  jurisprudencia: {
+    nome: 'Monitor Jurisprudência',
+    icon: '🏛️',
+    bg: '#0a1218',
+    sub: 'STF, STJ, TRF1ª Região, TJPI e JEF Floriano',
+    quickActions: ['🔍 STJ — aposentadoria especial', '⚖️ STF — PASEP correção monetária', '🏛️ TRF1 — benefícios previdenciários PI', '📋 Súmulas aplicáveis ao caso'],
+    systemPrompt: (ctx) => `Você é o Monitor de Jurisprudência do escritório AP Soluções Jurídicas, Dr. Adriano Paulo de Sá Silva (OAB/PI nº 13.896).
+
+Você analisa e sintetiza jurisprudência dos tribunais superiores e regionais, com foco nas matérias do escritório.
+
+TRIBUNAIS MONITORADOS:
+• STF — especialmente temas previdenciários e administrativos
+• STJ — recursos especiais em matéria previdenciária e civil
+• TRF 1ª Região — jurisdição do Piauí (Brasília)
+• TJPI — matérias estaduais e RPPS
+• JEF Floriano/PI — juizados especiais federais locais
+
+JURISPRUDÊNCIA ACUMULADA:
+• STF RE 1.505.996 — imprescritibilidade fundo de direito PASEP/FGTS
+• STF ADI 6.096/DF — idem
+• STJ Súmula 479 — responsabilidade objetiva bancária por fraudes
+• STJ AgRg — legitimidade BB como réu PASEP
+• TST Súmulas 437, 444, 448 II — matéria trabalhista
+• SVF 4 — equiparação salarial
+• STF Tema 542 (RE 634.093) — estabilidade gestante servidora comissionada
+• TRF1 — agentes biológicos: critério qualitativo para enfermagem
+
+DADOS DO ESCRITÓRIO:
+${ctx}
+
+Ao pesquisar jurisprudência:
+1. Cite o tribunal, número do processo/súmula e data
+2. Explique a aplicabilidade ao caso concreto
+3. Indique jurisprudência contrária quando relevante
+4. Sugira como usar o precedente na peça processual`
+  },
+
+  frontdesk: {
+    nome: 'Front-Desk IA',
+    icon: '🤝',
+    bg: '#121208',
+    sub: 'Triagem inteligente de novos casos e clientes',
+    quickActions: ['📋 Analisar novo caso', '💰 Estimar chances de êxito', '⚖️ Qual área do direito?', '📊 Viabilidade econômica da ação'],
+    systemPrompt: (ctx) => `Você é o Front-Desk IA do escritório AP Soluções Jurídicas, Dr. Adriano Paulo de Sá Silva (OAB/PI nº 13.896), Floriano/PI.
+
+Sua função é fazer a triagem inicial de novos casos, identificando:
+1. Área do direito aplicável
+2. Viabilidade jurídica (forte/médio/fraco)
+3. Estimativa de valor da causa
+4. Documentos necessários
+5. Prazo prescricional (já correu? quanto resta?)
+6. Recomendação: aceitar, recusar ou condicionalmente aceitar
+
+ÁREAS DO ESCRITÓRIO: Previdenciário, Cível, Administrativo, Constitucional, Consumidor, PASEP, RPPS
+
+CLIENTES ATIVOS DO ESCRITÓRIO:
+${ctx}
+
+Ao analisar um caso:
+- Seja direto e objetivo
+- Use porcentagem de êxito estimado
+- Identifique riscos processuais
+- Sugira honorários aproximados
+- Indique se há urgência (tutela de urgência necessária?)
+- Pergunte informações faltantes para completar a análise`
+  },
+
+  whatsapp: {
+    nome: 'Notificador WhatsApp',
+    icon: '📱',
+    bg: '#0a1a0f',
+    sub: 'Gera mensagens profissionais para enviar aos clientes',
+    quickActions: ['📅 Notificar prazo importante', '⚖️ Comunicar movimentação processual', '🏆 Informar decisão favorável', '📋 Enviar resumo do processo'],
+    systemPrompt: (ctx) => `Você é o Notificador WhatsApp do escritório AP Soluções Jurídicas, Dr. Adriano Paulo de Sá Silva (OAB/PI nº 13.896), Floriano/PI.
+
+Você redige mensagens profissionais, claras e humanizadas para envio aos clientes via WhatsApp. As mensagens devem:
+
+ESTILO:
+• Linguagem acessível (não técnica demais)
+• Tom profissional mas humano e acolhedor
+• Formatação WhatsApp (*negrito*, _itálico_)
+• Tamanho adequado (não muito longo)
+• Sempre se identificar como escritório do Dr. Adriano
+• Nunca gerar alarme desnecessário
+
+TIPOS DE MENSAGEM:
+• Movimentação processual importante
+• Prazo que requer ação do cliente
+• Decisão judicial (favorável ou desfavorável)
+• Solicitação de documentos
+• Agendamento de reunião
+• Resultado de diligência
+• Atualização geral do caso
+
+DADOS DO ESCRITÓRIO:
+${ctx}
+
+Após gerar a mensagem, exiba um botão para abrir o WhatsApp Web com a mensagem pré-preenchida.
+Sempre pergunte: para qual cliente e sobre qual assunto, se não informado.
+Ao final, forneça o link do WhatsApp no formato: https://wa.me/55NUMERO?text=MENSAGEM_CODIFICADA`
+  },
+
+  atendente: {
+    nome: 'Atendente Virtual',
+    icon: '💬',
+    bg: '#1a0a18',
+    sub: 'Simula atendimento ao cliente e prepara respostas automáticas',
+    quickActions: ['💬 Simular atendimento de cliente', '📋 Criar FAQ do escritório', '🤖 Gerar resposta automática', '📱 Script de atendimento WhatsApp'],
+    systemPrompt: (ctx) => `Você é o Atendente Virtual do escritório AP Soluções Jurídicas, Dr. Adriano Paulo de Sá Silva (OAB/PI nº 13.896), Floriano/PI.
+
+Você tem dois modos:
+
+MODO 1 — SIMULAÇÃO: Quando o Dr. Adriano quer treinar respostas ou criar scripts, você simula ser um cliente fazendo perguntas comuns.
+
+MODO 2 — GERADOR DE RESPOSTAS: Você cria respostas prontas para situações frequentes, que o Dr. Adriano pode copiar e enviar.
+
+PERGUNTAS FREQUENTES DOS CLIENTES:
+• "Como está meu processo?"
+• "Quando vai ter uma decisão?"
+• "Preciso comparecer à audiência?"
+• "Quanto tempo vai demorar?"
+• "Já recebi citação, o que faço?"
+• "Posso parcelar os honorários?"
+• "O que é uma tutela de urgência?"
+
+DADOS DO ESCRITÓRIO (use para personalizar respostas):
+${ctx}
+
+REGRAS:
+- Nunca dar informações jurídicas incorretas
+- Sempre orientar o cliente a contatar o Dr. Adriano para decisões importantes
+- Manter tom profissional e empático
+- Respostas curtas e claras para WhatsApp
+- Jamais prometer resultados ou prazos específicos sem confirmação`
+  }
+};
+
+// =============================================
+// SUPABASE
+// =============================================
+async function init() {
+  try {
+    const [c, p, pr, f] = await Promise.all([
+      db.from('ap_clientes').select('*').order('nome'),
+      db.from('ap_processos').select('*, ap_clientes(nome)').order('created_at', {ascending:false}),
+      db.from('ap_prazos').select('*, ap_processos(titulo)').order('data_vencimento'),
+      db.from('ap_financeiro').select('*, ap_clientes(nome)').order('created_at', {ascending:false})
+    ]);
+    dadosEscritorio.clientes = c.data || [];
+    dadosEscritorio.processos = p.data || [];
+    dadosEscritorio.prazos = pr.data || [];
+    dadosEscritorio.financeiro = f.data || [];
+    document.getElementById('syncDot').style.background = 'var(--verde)';
+    document.getElementById('syncStatus').textContent = `Supabase ☁️ — ${dadosEscritorio.clientes.length} clientes, ${dadosEscritorio.processos.length} processos`;
+    ativarAgente('guardiao');
+  } catch(e) {
+    document.getElementById('syncDot').style.background = 'var(--vermelho)';
+    document.getElementById('syncStatus').textContent = 'Offline — dados limitados';
+    ativarAgente('guardiao');
+  }
+}
+
+// =============================================
+// CONTEXTO DO ESCRITÓRIO
+// =============================================
+function gerarContexto() {
+  const hoje = new Date().toISOString().split('T')[0];
+  const prazosUrgentes = dadosEscritorio.prazos.filter(p =>
+    p.status === 'pendente' && p.data_vencimento <= new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0]
+  );
+  const finPendente = dadosEscritorio.financeiro.filter(f => f.status === 'pendente');
+  const totalReceber = finPendente.reduce((s,f) => s + Number(f.valor), 0);
+
+  let ctx = `CLIENTES (${dadosEscritorio.clientes.length} total):\n`;
+  dadosEscritorio.clientes.slice(0,10).forEach(c => {
+    ctx += `• ${c.nome} | Tel: ${c.telefone || '—'} | WhatsApp: ${c.whatsapp || c.telefone || '—'}\n`;
+  });
+
+  ctx += `\nPROCESSOS ATIVOS (${dadosEscritorio.processos.filter(p=>p.status==='ativo').length}):\n`;
+  dadosEscritorio.processos.filter(p=>p.status==='ativo').slice(0,8).forEach(p => {
+    ctx += `• [${p.area}] ${p.titulo} | Cliente: ${p.ap_clientes?.nome || '—'} | Nº: ${p.numero || 'sem nº'} | Vara: ${p.vara || '—'}\n`;
+  });
+
+  ctx += `\nPRAZOS URGENTES (próximos 7 dias — ${prazosUrgentes.length} total):\n`;
+  prazosUrgentes.forEach(p => {
+    ctx += `• ${p.titulo} | Vence: ${p.data_vencimento} | Prioridade: ${p.prioridade} | Processo: ${p.ap_processos?.titulo || '—'}\n`;
+  });
+
+  ctx += `\nFINANCEIRO:\n`;
+  ctx += `• Total a receber: R$ ${totalReceber.toFixed(2)} (${finPendente.length} lançamentos pendentes)\n`;
+
+  return ctx;
+}
+
+// =============================================
+// AGENTE ATIVO
+// =============================================
+function ativarAgente(id) {
+  agenteAtual = id;
+  document.querySelectorAll('.agente-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('item-' + id).classList.add('active');
+
+  const ag = AGENTES[id];
+  document.getElementById('agenteHeaderIcon').textContent = ag.icon;
+  document.getElementById('agenteHeaderIcon').style.background = ag.bg;
+  document.getElementById('agenteHeaderNome').textContent = ag.nome;
+  document.getElementById('agenteHeaderSub').textContent = ag.sub;
+
+  // Quick actions
+  const qa = document.getElementById('quickActions');
+  qa.innerHTML = ag.quickActions.map(q =>
+    `<button class="quick-btn" onclick="enviarQuick('${q.replace(/'/g,"\\'")}')"> ${q}</button>`
+  ).join('');
+
+  // Restaurar ou iniciar histórico
+  if (!historicos[id]) historicos[id] = [];
+  renderChat();
+
+  // Mensagem de boas-vindas se novo
+  if (historicos[id].length === 0) {
+    const boas_vindas = {
+      guardiao: `Olá, Dr. Adriano! 🔴\n\nSou o **Guardião de Prazos**. Acabei de carregar os dados reais do escritório.\n\n${dadosEscritorio.prazos.filter(p=>p.status==='pendente').length > 0 ? `Encontrei **${dadosEscritorio.prazos.filter(p=>p.status==='pendente').length} prazo(s) pendente(s)** no sistema. Deseja que eu faça uma análise completa agora?` : 'Nenhum prazo cadastrado ainda. Assim que você cadastrar processos e prazos no sistema principal, terei contexto completo para te alertar!'}\n\nPosso analisar prazos críticos, calcular dias úteis e sugerir ações concretas.`,
+      pasep: `Olá, Dr. Adriano! 💼\n\nSou o **Especialista PASEP**. Tenho carregado todas as teses, índices e jurisprudência acumuladas pelo escritório.\n\nEstou pronto para:\n• Calcular correções monetárias (Plano Verão, Collor I e II)\n• Analisar estratégias de prescrição\n• Citar jurisprudência do STF e STJ\n• Auxiliar na elaboração de petições PASEP\n\nO que você precisa?`,
+      rpps: `Olá, Dr. Adriano! 👴\n\nSou o **Especialista RPPS**, especializado em PIAUÍPREV/AGESPREV.\n\nTenho contexto completo do **caso Edna Menezes** e de toda a legislação previdenciária estadual.\n\nEstou pronto para auxiliar em:\n• Cálculo de pensão por morte\n• Teses de integralidade e paridade\n• Estratégia do LAI (prazo 17/06/2026)\n\nO que precisa?`,
+      pecas: `Olá, Dr. Adriano! 📄\n\nSou o **Gerador de Peças** do escritório. Redijo no padrão AP Soluções Jurídicas (Arial Nova 12, recuo 4cm, fundamentação robusta).\n\nPosso gerar petições iniciais, recursos, contestações, pareceres e muito mais.\n\nMe diga: qual peça precisa hoje?`,
+      jurisprudencia: `Olá, Dr. Adriano! 🏛️\n\nSou o **Monitor de Jurisprudência**. Monitoro STF, STJ, TRF1ª Região, TJPI e JEF Floriano.\n\nTenho acumulado os principais precedentes aplicáveis às causas do escritório.\n\nQual tribunal ou tema deseja pesquisar?`,
+      frontdesk: `Olá, Dr. Adriano! 🤝\n\nSou o **Front-Desk IA**. Faço a triagem inteligente de novos casos.\n\nMe descreva o caso do novo cliente e vou analisar:\n✅ Viabilidade jurídica\n✅ Estimativa de êxito\n✅ Documentos necessários\n✅ Prescrição\n✅ Valor estimado da causa`,
+      whatsapp: `Olá, Dr. Adriano! 📱\n\nSou o **Notificador WhatsApp**. Gero mensagens profissionais para enviar aos seus clientes.\n\nTenho os dados de contato de todos os clientes cadastrados no sistema.\n\nMe diga:\n• Para qual cliente?\n• Sobre qual assunto ou movimentação?\n\nVou redigir a mensagem e gerar o link para envio direto!`,
+      atendente: `Olá, Dr. Adriano! 💬\n\nSou o **Atendente Virtual**. Tenho dois modos:\n\n**Modo 1 — Simulação:** Simulo ser um cliente para você treinar respostas\n**Modo 2 — Gerador:** Crio respostas prontas para situações frequentes\n\nQual modo deseja usar?`
+    };
+
+    historicos[id].push({ role: 'assistant', content: boas_vindas[id] || `Olá! Sou o ${ag.nome}. Como posso ajudar?` });
+    renderChat();
+  }
+}
+
+// =============================================
+// CHAT
+// =============================================
+function renderChat() {
+  const area = document.getElementById('chatArea');
+  const msgs = historicos[agenteAtual] || [];
+  area.innerHTML = msgs.map(m => {
+    const isUser = m.role === 'user';
+    return `<div class="msg ${isUser ? 'user' : 'ia'}">
+      <div class="msg-avatar">${isUser ? '👨‍⚖️' : AGENTES[agenteAtual].icon}</div>
+      <div>
+        <div class="msg-bubble">${formatarMsg(m.content)}</div>
+        ${m.wppLink ? `<div style="margin-top:8px;"><a href="${m.wppLink}" target="_blank"><button class="btn btn-whatsapp btn-sm">📱 Abrir WhatsApp</button></a></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  area.scrollTop = area.scrollHeight;
+}
+
+function formatarMsg(txt) {
+  return txt
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>')
+    .replace(/•/g, '&bull;')
+    .replace(/`([^`]+)`/g, '<code style="background:#1a1a1a;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12px;">$1</code>');
+}
+
+function mostrarTyping() {
+  const area = document.getElementById('chatArea');
+  const div = document.createElement('div');
+  div.className = 'msg ia';
+  div.id = 'typingMsg';
+  div.innerHTML = `<div class="msg-avatar">${AGENTES[agenteAtual].icon}</div><div class="typing"><span></span><span></span><span></span></div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function removerTyping() {
+  const t = document.getElementById('typingMsg');
+  if (t) t.remove();
+}
+
+async function enviarMensagem() {
+  const input = document.getElementById('chatInput');
+  const txt = input.value.trim();
+  if (!txt) return;
+  input.value = '';
+  input.style.height = 'auto';
+  await processarMensagem(txt);
+}
+
+function enviarQuick(txt) {
+  document.getElementById('chatInput').value = txt;
+  enviarMensagem();
+}
+
+async function processarMensagem(txt) {
+  if (!historicos[agenteAtual]) historicos[agenteAtual] = [];
+  historicos[agenteAtual].push({ role: 'user', content: txt });
+  renderChat();
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  mostrarTyping();
+
+  try {
+    const ctx = gerarContexto();
+    const ag = AGENTES[agenteAtual];
+    const systemPrompt = ag.systemPrompt(ctx);
+
+    // Montar histórico sem a msg de boas-vindas do sistema
+    const msgs = historicos[agenteAtual]
+      .filter(m => !(m.role === 'assistant' && historicos[agenteAtual].indexOf(m) === 0))
+      .slice(-12)
+      .map(m => ({ role: m.role, content: m.content }));
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: CLAUDE_MODEL,
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages: msgs
+      })
+    });
+
+    const data = await response.json();
+    removerTyping();
+
+    if (data.error) throw new Error(data.error.message);
+
+    let resposta = data.content?.[0]?.text || 'Sem resposta.';
+
+    // Detectar link WhatsApp na resposta
+    let wppLink = null;
+    const wppMatch = resposta.match(/https:\/\/wa\.me\/\S+/);
+    if (wppMatch) {
+      wppLink = wppMatch[0];
+      resposta = resposta.replace(wppMatch[0], '').trim();
+    }
+
+    historicos[agenteAtual].push({ role: 'assistant', content: resposta, wppLink });
+    renderChat();
+
+  } catch(e) {
+    removerTyping();
+    const errMsg = e.message.includes('API') || e.message.includes('fetch')
+      ? '❌ Erro de conexão com a IA. Verifique sua internet.'
+      : `❌ Erro: ${e.message}`;
+    historicos[agenteAtual].push({ role: 'assistant', content: errMsg });
+    renderChat();
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// =============================================
+// UTILS
+// =============================================
+function limparChat() {
+  if (!confirm('Limpar conversa com este agente?')) return;
+  historicos[agenteAtual] = [];
+  ativarAgente(agenteAtual);
+}
+
+function exportarConversa() {
+  const msgs = historicos[agenteAtual] || [];
+  const txt = msgs.map(m => `[${m.role === 'user' ? 'Dr. Adriano' : AGENTES[agenteAtual].nome}]\n${m.content}`).join('\n\n---\n\n');
+  navigator.clipboard.writeText(txt).then(() => showToast('Conversa copiada!', 'success'));
+}
+
+function showToast(msg, tipo='info') {
+  const icons = {success:'✅',error:'❌',info:'ℹ️'};
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${tipo}`;
+  toast.innerHTML = `<span>${icons[tipo]}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// =============================================
+// START
+// =============================================
+init();
+</script>
+</body>
+</html>

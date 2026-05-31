@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central de Alertas — AP Soluções Jurídicas</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ouro: #c9a84c;
+    --ouro-claro: #e8c96a;
+    --ouro-escuro: #a07830;
+    --preto: #0a0a0a;
+    --preto-card: #111111;
+    --preto-borda: #1e1e1e;
+    --cinza: #2a2a2a;
+    --cinza-texto: #888;
+    --branco: #f5f0e8;
+    --vermelho: #c0392b;
+    --verde: #27ae60;
+    --azul: #2980b9;
+    --laranja: #d35400;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--preto);
+    color: var(--branco);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1408 100%);
+    border-bottom: 1px solid var(--ouro-escuro);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--ouro);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ouro);
+    letter-spacing: 0.5px;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--cinza-texto);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--cinza-texto);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--verde);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* LAYOUT */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--ouro);
+    margin-bottom: 4px;
+  }
+
+  .page-sub {
+    font-size: 13px;
+    color: var(--cinza-texto);
+    margin-bottom: 32px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--preto-card);
+    border: 1px solid var(--preto-borda);
+    border-radius: 12px;
+    padding: 6px;
+    margin-bottom: 28px;
+    width: fit-content;
+  }
+
+  .tab {
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--cinza-texto);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab.active {
+    background: var(--ouro);
+    color: var(--preto);
+    font-weight: 600;
+  }
+
+  .tab:hover:not(.active) {
+    color: var(--branco);
+    background: var(--cinza);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--preto-card);
+    border: 1px solid var(--preto-borda);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ouro);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* FORM */
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--cinza-texto);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    background: #0f0f0f;
+    border: 1px solid var(--preto-borda);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--branco);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--ouro-escuro);
+  }
+
+  textarea { resize: vertical; min-height: 100px; }
+
+  select option { background: #111; }
+
+  /* BUTTONS */
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-primary {
+    background: var(--ouro);
+    color: var(--preto);
+  }
+
+  .btn-primary:hover { background: var(--ouro-claro); transform: translateY(-1px); }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--preto-borda);
+    color: var(--cinza-texto);
+  }
+
+  .btn-outline:hover { border-color: var(--ouro-escuro); color: var(--branco); }
+
+  .btn-danger {
+    background: var(--vermelho);
+    color: white;
+  }
+
+  .btn-success {
+    background: var(--verde);
+    color: white;
+  }
+
+  .btn-whatsapp {
+    background: #25D366;
+    color: white;
+  }
+
+  .btn-calendar {
+    background: #4285F4;
+    color: white;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-urgente { background: rgba(192,57,43,0.2); color: #e74c3c; border: 1px solid rgba(192,57,43,0.3); }
+  .badge-hoje { background: rgba(211,84,0,0.2); color: #e67e22; border: 1px solid rgba(211,84,0,0.3); }
+  .badge-semana { background: rgba(39,174,96,0.2); color: #2ecc71; border: 1px solid rgba(39,174,96,0.3); }
+  .badge-normal { background: rgba(41,128,185,0.2); color: #3498db; border: 1px solid rgba(41,128,185,0.3); }
+  .badge-enviado { background: rgba(39,174,96,0.2); color: #2ecc71; border: 1px solid rgba(39,174,96,0.3); }
+  .badge-pendente { background: rgba(211,84,0,0.2); color: #e67e22; border: 1px solid rgba(211,84,0,0.3); }
+
+  /* ALERTAS LIST */
+  .alerta-item {
+    background: #0f0f0f;
+    border: 1px solid var(--preto-borda);
+    border-left: 3px solid var(--ouro-escuro);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    transition: border-color 0.2s;
+  }
+
+  .alerta-item:hover { border-color: var(--ouro); }
+  .alerta-item.urgente { border-left-color: var(--vermelho); }
+  .alerta-item.hoje { border-left-color: var(--laranja); }
+
+  .alerta-info { flex: 1; }
+
+  .alerta-titulo {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: var(--branco);
+  }
+
+  .alerta-meta {
+    font-size: 12px;
+    color: var(--cinza-texto);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .alerta-acoes {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  /* STATS */
+  .stat-card {
+    background: var(--preto-card);
+    border: 1px solid var(--preto-borda);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .stat-numero {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--ouro);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--cinza-texto);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  /* TOAST */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    background: var(--preto-card);
+    border: 1px solid var(--preto-borda);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    min-width: 280px;
+    max-width: 360px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  .toast.success { border-left: 3px solid var(--verde); }
+  .toast.error { border-left: 3px solid var(--vermelho); }
+  .toast.info { border-left: 3px solid var(--azul); }
+
+  @keyframes slideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* EMAIL TEST */
+  .test-box {
+    background: #0a0f0a;
+    border: 1px solid #1a3a1a;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+
+  .test-box .label { color: #4CAF50; }
+
+  .log-item {
+    font-size: 12px;
+    font-family: monospace;
+    padding: 4px 0;
+    border-bottom: 1px solid #1a1a1a;
+    color: var(--cinza-texto);
+  }
+
+  .log-item.success { color: #4CAF50; }
+  .log-item.error { color: #e74c3c; }
+  .log-item.info { color: #3498db; }
+
+  /* HISTORY */
+  .history-item {
+    background: #0f0f0f;
+    border: 1px solid var(--preto-borda);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--cinza-texto);
+  }
+
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+
+  /* AUTOMATION */
+  .rule-card {
+    background: #0f0f0f;
+    border: 1px solid var(--preto-borda);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .toggle {
+    width: 44px;
+    height: 24px;
+    background: var(--cinza);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+    border: none;
+    flex-shrink: 0;
+  }
+
+  .toggle.on { background: var(--verde); }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: left 0.3s;
+  }
+
+  .toggle.on::after { left: 23px; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--preto-borda);
+    margin: 20px 0;
+  }
+
+  @media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .tabs { flex-wrap: wrap; }
+    .alerta-item { flex-direction: column; }
+    .header { padding: 0 16px; }
+    .container { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">⚖️</div>
+    <div>
+      <div class="logo-text">AP Soluções Jurídicas</div>
+      <div class="logo-sub">Central de Alertas</div>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-dot"></div>
+    <span id="statusEmailjs">EmailJS conectado</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="page-title">Central de Alertas</div>
+  <div class="page-sub">Gestão de prazos, notificações por e-mail, WhatsApp e Google Agenda</div>
+
+  <!-- STATS -->
+  <div class="grid-3" style="margin-bottom: 28px;">
+    <div class="stat-card">
+      <div class="stat-numero" id="statUrgentes">0</div>
+      <div class="stat-label">🔴 Urgentes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-numero" id="statHoje">0</div>
+      <div class="stat-label">🟡 Vencem Hoje</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-numero" id="statTotal">0</div>
+      <div class="stat-label">📋 Total de Alertas</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('alertas')">📋 Alertas</button>
+    <button class="tab" onclick="switchTab('novo')">➕ Novo Alerta</button>
+    <button class="tab" onclick="switchTab('email')">📧 Testar E-mail</button>
+    <button class="tab" onclick="switchTab('automacao')">⚙️ Automação</button>
+    <button class="tab" onclick="switchTab('historico')">📜 Histórico</button>
+  </div>
+
+  <!-- TAB: ALERTAS -->
+  <div id="tab-alertas" class="tab-content active">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div class="card-title" style="margin-bottom:0;">📋 Alertas Ativos</div>
+        <div style="display:flex; gap:8px;">
+          <select id="filtroAlerta" onchange="renderAlertas()" style="width:auto; font-size:12px; padding:6px 10px;">
+            <option value="todos">Todos</option>
+            <option value="urgente">Urgentes</option>
+            <option value="hoje">Hoje</option>
+            <option value="semana">Esta Semana</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="enviarTodosUrgentes()">📧 Notificar Urgentes</button>
+        </div>
+      </div>
+      <div id="listaAlertas"></div>
+    </div>
+  </div>
+
+  <!-- TAB: NOVO ALERTA -->
+  <div id="tab-novo" class="tab-content">
+    <div class="card">
+      <div class="card-title">➕ Criar Novo Alerta</div>
+      <div class="grid-2">
+        <div>
+          <div class="form-group">
+            <label>Título do Alerta *</label>
+            <input type="text" id="novoTitulo" placeholder="Ex: Prazo recurso — João Silva">
+          </div>
+          <div class="form-group">
+            <label>Processo / Referência</label>
+            <input type="text" id="novoProcesso" placeholder="Nº do processo ou referência">
+          </div>
+          <div class="form-group">
+            <label>Tipo de Prazo</label>
+            <select id="novoTipo">
+              <option value="prazo_processual">Prazo Processual</option>
+              <option value="audiencia">Audiência</option>
+              <option value="diligencia">Diligência</option>
+              <option value="honorario">Honorário</option>
+              <option value="administrativo">Prazo Administrativo</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Data do Vencimento *</label>
+            <input type="date" id="novaData">
+          </div>
+        </div>
+        <div>
+          <div class="form-group">
+            <label>Prioridade</label>
+            <select id="novaPrioridade">
+              <option value="normal">Normal</option>
+              <option value="semana">Esta Semana</option>
+              <option value="hoje">Hoje</option>
+              <option value="urgente">Urgente</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Observações</label>
+            <textarea id="novaObs" placeholder="Detalhes adicionais, estratégia, documentos necessários..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Notificar por E-mail</label>
+            <select id="novoEmail">
+              <option value="sim">Sim — enviar ao criar</option>
+              <option value="nao">Não</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="criarAlerta()">✅ Criar Alerta</button>
+        <button class="btn btn-outline" onclick="limparFormNovo()">🗑️ Limpar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: TESTAR E-MAIL -->
+  <div id="tab-email" class="tab-content">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">📧 Configuração EmailJS</div>
+        <div class="form-group">
+          <label>Status da Conexão</label>
+          <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:#0f0f0f; border:1px solid #1e3a1e; border-radius:8px;">
+            <div class="status-dot"></div>
+            <span style="font-size:13px; color:#4CAF50;">✅ EmailJS configurado e pronto</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Service ID</label>
+          <input type="text" value="service_sj4gmjq" readonly style="color:var(--cinza-texto);">
+        </div>
+        <div class="form-group">
+          <label>Template ID</label>
+          <input type="text" value="template_9rcgpbv" readonly style="color:var(--cinza-texto);">
+        </div>
+        <div class="form-group">
+          <label>E-mail Destino</label>
+          <input type="text" value="adrianosilva3030@gmail.com" readonly style="color:var(--cinza-texto);">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🧪 Enviar E-mail de Teste</div>
+        <div class="form-group">
+          <label>Assunto do Teste</label>
+          <input type="text" id="testeAssunto" value="[AP Sistema] Teste de notificação — EmailJS">
+        </div>
+        <div class="form-group">
+          <label>Mensagem</label>
+          <textarea id="testeMensagem">Olá, Dr. Adriano!
+
+Este é um e-mail de teste da Central de Alertas do AP Soluções Jurídicas.
+
+Se você recebeu esta mensagem, a integração com o EmailJS está funcionando perfeitamente! ✅
+
+Data/hora do envio: {DATETIME}
+
+— AP Sistema de Alertas</textarea>
+        </div>
+        <button class="btn btn-primary" onclick="enviarEmailTeste()" id="btnTeste">
+          📧 Enviar E-mail de Teste
+        </button>
+
+        <div class="test-box" id="logBox" style="display:none;">
+          <div class="label" style="font-size:12px; font-weight:600; margin-bottom:8px;">📋 LOG DE ENVIO</div>
+          <div id="logContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📩 Enviar Notificação Manual</div>
+      <div class="grid-2">
+        <div>
+          <div class="form-group">
+            <label>Assunto</label>
+            <input type="text" id="manualAssunto" placeholder="Assunto do e-mail">
+          </div>
+          <div class="form-group">
+            <label>Destinatário (opcional)</label>
+            <input type="text" id="manualDestinatario" placeholder="Deixe em branco para usar seu Gmail">
+          </div>
+        </div>
+        <div>
+          <div class="form-group">
+            <label>Mensagem</label>
+            <textarea id="manualMensagem" placeholder="Corpo do e-mail..."></textarea>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="enviarEmailManual()">📤 Enviar E-mail</button>
+    </div>
+  </div>
+
+  <!-- TAB: AUTOMAÇÃO -->
+  <div id="tab-automacao" class="tab-content">
+    <div class="card">
+      <div class="card-title">⚙️ Regras de Automação</div>
+      <p style="font-size:13px; color:var(--cinza-texto); margin-bottom:20px;">
+        Configure quando e como os alertas são enviados automaticamente.
+      </p>
+
+      <div class="rule-card">
+        <div>
+          <div style="font-weight:600; font-size:14px; margin-bottom:4px;">📧 E-mail ao criar alerta urgente</div>
+          <div style="font-size:12px; color:var(--cinza-texto);">Envia notificação imediata quando um alerta urgente é criado</div>
+        </div>
+        <button class="toggle on" id="toggle1" onclick="toggleRegra(this)"></button>
+      </div>
+
+      <div class="rule-card">
+        <div>
+          <div style="font-weight:600; font-size:14px; margin-bottom:4px;">📧 E-mail diário de prazos</div>
+          <div style="font-size:12px; color:var(--cinza-texto);">Resume todos os prazos da semana (requer abertura manual do sistema)</div>
+        </div>
+        <button class="toggle" id="toggle2" onclick="toggleRegra(this)"></button>
+      </div>
+
+      <div class="rule-card">
+        <div>
+          <div style="font-weight:600; font-size:14px; margin-bottom:4px;">🔔 Notificação do navegador</div>
+          <div style="font-size:12px; color:var(--cinza-texto);">Alerta visual ao abrir o sistema com prazos urgentes</div>
+        </div>
+        <button class="toggle on" id="toggle3" onclick="toggleRegra(this)"></button>
+      </div>
+
+      <div class="rule-card">
+        <div>
+          <div style="font-weight:600; font-size:14px; margin-bottom:4px;">📅 Criar evento Google Agenda</div>
+          <div style="font-size:12px; color:var(--cinza-texto);">Abre link para criar evento no Google Agenda ao salvar alerta</div>
+        </div>
+        <button class="toggle" id="toggle4" onclick="toggleRegra(this)"></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📱 WhatsApp — Lembrete Rápido</div>
+      <p style="font-size:13px; color:var(--cinza-texto); margin-bottom:16px;">
+        Gere link para enviar lembrete via WhatsApp para você mesmo ou para um cliente.
+      </p>
+      <div class="grid-2">
+        <div>
+          <div class="form-group">
+            <label>Número (com DDD, sem +55)</label>
+            <input type="text" id="wppNumero" placeholder="89999999999">
+          </div>
+          <div class="form-group">
+            <label>Mensagem</label>
+            <textarea id="wppMensagem" placeholder="Lembrete: prazo amanhã — processo nº..."></textarea>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; justify-content:flex-end;">
+          <button class="btn btn-whatsapp" onclick="abrirWhatsApp()">
+            💬 Abrir WhatsApp Web
+          </button>
+          <p style="font-size:11px; color:var(--cinza-texto); margin-top:8px;">
+            Abre o WhatsApp Web com a mensagem pré-preenchida.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: HISTÓRICO -->
+  <div id="tab-historico" class="tab-content">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div class="card-title" style="margin-bottom:0;">📜 Histórico de Envios</div>
+        <button class="btn btn-outline btn-sm" onclick="limparHistorico()">🗑️ Limpar Histórico</button>
+      </div>
+      <div id="listaHistorico"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// =============================================
+// CONFIGURAÇÃO EMAILJS
+// =============================================
+const EMAILJS_CONFIG = {
+  publicKey: 'ftDhrwC1Fn8mlGsPp',
+  serviceId: 'service_sj4gmjq',
+  templateId: 'template_9rcgpbv',
+  emailDestino: 'adrianosilva3030@gmail.com'
+};
+
+// Inicializar EmailJS
+emailjs.init(EMAILJS_CONFIG.publicKey);
+
+// =============================================
+// ESTADO DA APLICAÇÃO
+// =============================================
+let alertas = JSON.parse(localStorage.getItem('ap_alertas') || '[]');
+let historico = JSON.parse(localStorage.getItem('ap_historico_emails') || '[]');
+let regras = JSON.parse(localStorage.getItem('ap_regras') || '{"toggle1":true,"toggle2":false,"toggle3":true,"toggle4":false}');
+
+// =============================================
+// TABS
+// =============================================
+function switchTab(nome) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + nome).classList.add('active');
+  event.target.classList.add('active');
+
+  if (nome === 'alertas') renderAlertas();
+  if (nome === 'historico') renderHistorico();
+}
+
+// =============================================
+// TOAST
+// =============================================
+function showToast(msg, tipo = 'info') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${tipo}`;
+  toast.innerHTML = `<span>${icons[tipo]}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// =============================================
+// SALVAR DADOS
+// =============================================
+function salvarAlertas() {
+  localStorage.setItem('ap_alertas', JSON.stringify(alertas));
+  atualizarStats();
+}
+
+function salvarHistorico() {
+  localStorage.setItem('ap_historico_emails', JSON.stringify(historico));
+}
+
+// =============================================
+// STATS
+// =============================================
+function atualizarStats() {
+  const hoje = new Date().toISOString().split('T')[0];
+  const urgentes = alertas.filter(a => a.prioridade === 'urgente' && !a.concluido).length;
+  const hojeCount = alertas.filter(a => a.data === hoje && !a.concluido).length;
+  const total = alertas.filter(a => !a.concluido).length;
+  document.getElementById('statUrgentes').textContent = urgentes;
+  document.getElementById('statHoje').textContent = hojeCount;
+  document.getElementById('statTotal').textContent = total;
+}
+
+// =============================================
+// CRIAR ALERTA
+// =============================================
+function criarAlerta() {
+  const titulo = document.getElementById('novoTitulo').value.trim();
+  const data = document.getElementById('novaData').value;
+  if (!titulo || !data) {
+    showToast('Preencha o título e a data!', 'error');
+    return;
+  }
+
+  const alerta = {
+    id: Date.now(),
+    titulo,
+    processo: document.getElementById('novoProcesso').value.trim(),
+    tipo: document.getElementById('novoTipo').value,
+    data,
+    prioridade: document.getElementById('novaPrioridade').value,
+    obs: document.getElementById('novaObs').value.trim(),
+    concluido: false,
+    criadoEm: new Date().toISOString()
+  };
+
+  alertas.unshift(alerta);
+  salvarAlertas();
+
+  const notificarEmail = document.getElementById('novoEmail').value === 'sim';
+  const regra1 = regras.toggle1 && alerta.prioridade === 'urgente';
+
+  if (notificarEmail || regra1) {
+    const assunto = `[AP Alertas] ${alerta.prioridade === 'urgente' ? '🔴 URGENTE' : '📋'} ${alerta.titulo}`;
+    const msg = `Novo alerta criado no sistema AP Soluções Jurídicas:\n\nTítulo: ${alerta.titulo}\nProcesso: ${alerta.processo || '—'}\nTipo: ${alerta.tipo}\nData de Vencimento: ${formatarData(alerta.data)}\nPrioridade: ${alerta.prioridade.toUpperCase()}\n\nObservações:\n${alerta.obs || 'Nenhuma observação.'}\n\n— AP Sistema de Alertas`;
+    enviarEmail(assunto, msg, alerta.titulo);
+  }
+
+  // Google Agenda
+  if (regras.toggle4) {
+    const inicio = alerta.data.replace(/-/g, '');
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(alerta.titulo)}&dates=${inicio}/${inicio}&details=${encodeURIComponent(alerta.obs || alerta.titulo)}`;
+    window.open(url, '_blank');
+  }
+
+  // Notificação browser
+  if (regras.toggle3 && alerta.prioridade === 'urgente') {
+    if (Notification.permission === 'granted') {
+      new Notification('🔴 Alerta Urgente — AP Sistema', { body: alerta.titulo });
+    }
+  }
+
+  showToast('Alerta criado com sucesso!', 'success');
+  limparFormNovo();
+  switchTabProgramatico('alertas');
+}
+
+function switchTabProgramatico(nome) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + nome).classList.add('active');
+  document.querySelector(`.tab[onclick="switchTab('${nome}')"]`).classList.add('active');
+  renderAlertas();
+}
+
+// =============================================
+// RENDERIZAR ALERTAS
+// =============================================
+function renderAlertas() {
+  const container = document.getElementById('listaAlertas');
+  const filtro = document.getElementById('filtroAlerta').value;
+  const hoje = new Date().toISOString().split('T')[0];
+
+  let lista = alertas.filter(a => !a.concluido);
+
+  if (filtro === 'urgente') lista = lista.filter(a => a.prioridade === 'urgente');
+  else if (filtro === 'hoje') lista = lista.filter(a => a.data === hoje);
+  else if (filtro === 'semana') {
+    const fim = new Date(); fim.setDate(fim.getDate() + 7);
+    lista = lista.filter(a => a.data >= hoje && a.data <= fim.toISOString().split('T')[0]);
+  }
+
+  if (lista.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <div style="font-size:15px; font-weight:600; margin-bottom:6px;">Nenhum alerta encontrado</div>
+        <div style="font-size:13px;">Clique em "Novo Alerta" para criar o primeiro.</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = lista.map(a => {
+    const badgeClass = a.prioridade === 'urgente' ? 'urgente' : a.prioridade === 'hoje' ? 'hoje' : a.prioridade === 'semana' ? 'semana' : 'normal';
+    const labels = { urgente: '🔴 URGENTE', hoje: '🟡 HOJE', semana: '🟢 SEMANA', normal: '🔵 NORMAL' };
+    const tipos = { prazo_processual: '⚖️ Prazo Processual', audiencia: '🏛️ Audiência', diligencia: '📌 Diligência', honorario: '💰 Honorário', administrativo: '📄 Administrativo', outro: '📎 Outro' };
+
+    return `
+    <div class="alerta-item ${a.prioridade === 'urgente' ? 'urgente' : a.data === new Date().toISOString().split('T')[0] ? 'hoje' : ''}">
+      <div class="alerta-info">
+        <div class="alerta-titulo">${a.titulo}</div>
+        <div class="alerta-meta">
+          <span class="badge badge-${badgeClass}">${labels[a.prioridade]}</span>
+          <span>📅 ${formatarData(a.data)}</span>
+          ${a.processo ? `<span>📁 ${a.processo}</span>` : ''}
+          <span>${tipos[a.tipo] || a.tipo}</span>
+        </div>
+        ${a.obs ? `<div style="font-size:12px; color:var(--cinza-texto); margin-top:6px; font-style:italic;">${a.obs}</div>` : ''}
+      </div>
+      <div class="alerta-acoes">
+        <button class="btn btn-outline btn-sm" onclick="notificarAlerta(${a.id})" title="Enviar e-mail">📧</button>
+        <button class="btn btn-calendar btn-sm" onclick="agendarCalendario(${a.id})" title="Google Agenda">📅</button>
+        <button class="btn btn-whatsapp btn-sm" onclick="wppAlerta(${a.id})" title="WhatsApp">💬</button>
+        <button class="btn btn-success btn-sm" onclick="concluirAlerta(${a.id})" title="Concluído">✅</button>
+        <button class="btn btn-danger btn-sm" onclick="excluirAlerta(${a.id})" title="Excluir">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =============================================
+// AÇÕES DE ALERTA
+// =============================================
+function concluirAlerta(id) {
+  const a = alertas.find(x => x.id === id);
+  if (a) { a.concluido = true; salvarAlertas(); renderAlertas(); showToast('Alerta concluído!', 'success'); }
+}
+
+function excluirAlerta(id) {
+  if (!confirm('Excluir este alerta?')) return;
+  alertas = alertas.filter(x => x.id !== id);
+  salvarAlertas(); renderAlertas();
+  showToast('Alerta excluído.', 'info');
+}
+
+function notificarAlerta(id) {
+  const a = alertas.find(x => x.id === id);
+  if (!a) return;
+  const assunto = `[AP Alertas] ${a.prioridade === 'urgente' ? '🔴 URGENTE — ' : ''}${a.titulo}`;
+  const msg = `Lembrete de prazo:\n\nTítulo: ${a.titulo}\nProcesso: ${a.processo || '—'}\nVencimento: ${formatarData(a.data)}\nPrioridade: ${a.prioridade.toUpperCase()}\n\n${a.obs || ''}\n\n— AP Sistema de Alertas`;
+  enviarEmail(assunto, msg, a.titulo);
+}
+
+function agendarCalendario(id) {
+  const a = alertas.find(x => x.id === id);
+  if (!a) return;
+  const inicio = a.data.replace(/-/g, '');
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(a.titulo)}&dates=${inicio}/${inicio}&details=${encodeURIComponent(a.obs || a.titulo)}&location=${encodeURIComponent('Vara — ' + (a.processo || ''))}`;
+  window.open(url, '_blank');
+}
+
+function wppAlerta(id) {
+  const a = alertas.find(x => x.id === id);
+  if (!a) return;
+  const msg = `⚖️ *AP Soluções Jurídicas*\n\n📋 *Lembrete de Prazo*\n\n*${a.titulo}*\n📅 Vencimento: ${formatarData(a.data)}\n📁 Processo: ${a.processo || '—'}\n${a.obs ? '\n' + a.obs : ''}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function enviarTodosUrgentes() {
+  const urgentes = alertas.filter(a => a.prioridade === 'urgente' && !a.concluido);
+  if (urgentes.length === 0) { showToast('Nenhum alerta urgente ativo.', 'info'); return; }
+  const lista = urgentes.map(a => `• ${a.titulo} — ${formatarData(a.data)} — Proc: ${a.processo || '—'}`).join('\n');
+  const msg = `🔴 PRAZOS URGENTES — AP SOLUÇÕES JURÍDICAS\n\nVocê tem ${urgentes.length} prazo(s) urgente(s):\n\n${lista}\n\n— AP Sistema de Alertas`;
+  enviarEmail(`[AP Alertas] 🔴 ${urgentes.length} Prazo(s) Urgente(s)`, msg, 'Prazos Urgentes');
+}
+
+// =============================================
+// ENVIO DE E-MAIL
+// =============================================
+async function enviarEmail(assunto, mensagem, referencia = '') {
+  const params = {
+    subject: assunto,
+    message: mensagem,
+    name: 'AP Sistema de Alertas',
+    email: EMAILJS_CONFIG.emailDestino,
+    to_email: EMAILJS_CONFIG.emailDestino
+  };
+
+  try {
+    await emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, params);
+    registrarHistorico(assunto, referencia, 'enviado');
+    showToast('E-mail enviado com sucesso!', 'success');
+  } catch (err) {
+    registrarHistorico(assunto, referencia, 'erro');
+    showToast('Erro ao enviar e-mail: ' + (err.text || err.message || 'Verifique a configuração'), 'error');
+    console.error('EmailJS error:', err);
+  }
+}
+
+async function enviarEmailTeste() {
+  const btn = document.getElementById('btnTeste');
+  const logBox = document.getElementById('logBox');
+  const logContent = document.getElementById('logContent');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Enviando...';
+  logBox.style.display = 'block';
+  logContent.innerHTML = '';
+
+  const addLog = (msg, tipo = 'info') => {
+    logContent.innerHTML += `<div class="log-item ${tipo}">${new Date().toLocaleTimeString()} — ${msg}</div>`;
+  };
+
+  addLog('Iniciando envio via EmailJS...', 'info');
+  addLog(`Service: ${EMAILJS_CONFIG.serviceId}`, 'info');
+  addLog(`Template: ${EMAILJS_CONFIG.templateId}`, 'info');
+  addLog(`Destino: ${EMAILJS_CONFIG.emailDestino}`, 'info');
+
+  const assunto = document.getElementById('testeAssunto').value;
+  const mensagem = document.getElementById('testeMensagem').value.replace('{DATETIME}', new Date().toLocaleString('pt-BR'));
+
+  try {
+    addLog('Conectando ao EmailJS...', 'info');
+    const result = await emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+      subject: assunto,
+      message: mensagem,
+      name: 'AP Sistema — Teste',
+      email: EMAILJS_CONFIG.emailDestino,
+      to_email: EMAILJS_CONFIG.emailDestino
+    });
+    addLog(`✅ E-mail enviado! Status: ${result.status} — ${result.text}`, 'success');
+    registrarHistorico(assunto, 'Teste', 'enviado');
+    showToast('E-mail de teste enviado! Verifique sua caixa de entrada.', 'success');
+  } catch (err) {
+    addLog(`❌ Erro: ${JSON.stringify(err)}`, 'error');
+    registrarHistorico(assunto, 'Teste', 'erro');
+    showToast('Erro no envio. Veja o log abaixo.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📧 Enviar E-mail de Teste';
+  }
+}
+
+async function enviarEmailManual() {
+  const assunto = document.getElementById('manualAssunto').value.trim();
+  const mensagem = document.getElementById('manualMensagem').value.trim();
+  if (!assunto || !mensagem) { showToast('Preencha assunto e mensagem!', 'error'); return; }
+  await enviarEmail(assunto, mensagem, 'Manual');
+}
+
+// =============================================
+// HISTÓRICO
+// =============================================
+function registrarHistorico(assunto, referencia, status) {
+  historico.unshift({
+    id: Date.now(),
+    assunto,
+    referencia,
+    status,
+    data: new Date().toISOString()
+  });
+  if (historico.length > 100) historico = historico.slice(0, 100);
+  salvarHistorico();
+}
+
+function renderHistorico() {
+  const container = document.getElementById('listaHistorico');
+  if (historico.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📜</div><div>Nenhum e-mail enviado ainda.</div></div>';
+    return;
+  }
+  container.innerHTML = historico.map(h => `
+    <div class="history-item">
+      <div>
+        <div style="font-weight:600; font-size:13px; margin-bottom:2px;">${h.assunto}</div>
+        <div style="font-size:11px; color:var(--cinza-texto);">${h.referencia} · ${new Date(h.data).toLocaleString('pt-BR')}</div>
+      </div>
+      <span class="badge badge-${h.status === 'enviado' ? 'enviado' : 'urgente'}">${h.status === 'enviado' ? '✅ Enviado' : '❌ Erro'}</span>
+    </div>`).join('');
+}
+
+function limparHistorico() {
+  if (!confirm('Limpar todo o histórico?')) return;
+  historico = [];
+  salvarHistorico();
+  renderHistorico();
+  showToast('Histórico limpo.', 'info');
+}
+
+// =============================================
+// AUTOMAÇÃO
+// =============================================
+function toggleRegra(btn) {
+  btn.classList.toggle('on');
+  regras[btn.id] = btn.classList.contains('on');
+  localStorage.setItem('ap_regras', JSON.stringify(regras));
+  showToast('Configuração salva!', 'success');
+}
+
+function carregarRegras() {
+  Object.entries(regras).forEach(([id, val]) => {
+    const btn = document.getElementById(id);
+    if (btn) { btn.classList.toggle('on', val); }
+  });
+}
+
+// =============================================
+// WHATSAPP
+// =============================================
+function abrirWhatsApp() {
+  const numero = document.getElementById('wppNumero').value.trim().replace(/\D/g, '');
+  const msg = document.getElementById('wppMensagem').value.trim();
+  if (!msg) { showToast('Digite uma mensagem!', 'error'); return; }
+  const url = numero
+    ? `https://wa.me/55${numero}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+// =============================================
+// FORMULÁRIO NOVO
+// =============================================
+function limparFormNovo() {
+  ['novoTitulo','novoProcesso','novaData','novaObs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('novoTipo').value = 'prazo_processual';
+  document.getElementById('novaPrioridade').value = 'normal';
+  document.getElementById('novoEmail').value = 'sim';
+}
+
+// =============================================
+// FORMATAÇÃO
+// =============================================
+function formatarData(data) {
+  if (!data) return '—';
+  const [y, m, d] = data.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+// =============================================
+// NOTIFICAÇÃO DO BROWSER
+// =============================================
+function pedirPermissaoNotificacao() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+// =============================================
+// INICIALIZAÇÃO
+// =============================================
+function init() {
+  pedirPermissaoNotificacao();
+  carregarRegras();
+  atualizarStats();
+  renderAlertas();
+
+  // Checar prazos urgentes ao abrir
+  if (regras.toggle3) {
+    const urgentes = alertas.filter(a => a.prioridade === 'urgente' && !a.concluido);
+    if (urgentes.length > 0) {
+      setTimeout(() => {
+        showToast(`🔴 Você tem ${urgentes.length} prazo(s) urgente(s)!`, 'error');
+      }, 1000);
+    }
+  }
+}
+
+init();
+</script>
+</body>
+</html>
