@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP Soluções Jurídicas — Sistema de Gestão</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ouro:#c9a84c; --ouro-claro:#e8c96a; --ouro-escuro:#a07830;
+  --preto:#0a0a0a; --preto-card:#111111; --preto-borda:#1e1e1e;
+  --cinza-texto:#888; --branco:#f5f0e8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--preto);color:var(--branco);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#0a0a0a,#1a1408);border-bottom:1px solid var(--ouro-escuro);padding:24px 40px;text-align:center;}
+.logo-icon{font-size:48px;margin-bottom:12px;}
+.logo-text{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:var(--ouro);letter-spacing:1px;}
+.logo-sub{font-size:13px;color:var(--cinza-texto);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.oab{font-size:12px;color:var(--ouro-escuro);margin-top:6px;font-style:italic;}
+
+/* HERO */
+.hero{padding:48px 40px 24px;text-align:center;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:500;color:var(--branco);margin-bottom:8px;}
+.hero-sub{font-size:14px;color:var(--cinza-texto);max-width:500px;margin:0 auto;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;padding:24px 40px 48px;max-width:1100px;margin:0 auto;width:100%;}
+
+.card{background:var(--preto-card);border:1px solid var(--preto-borda);border-radius:16px;padding:28px 24px;text-decoration:none;color:var(--branco);transition:all .3s;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ouro);transform:scaleX(0);transition:transform .3s;}
+.card:hover{border-color:var(--ouro-escuro);transform:translateY(-4px);box-shadow:0 12px 40px rgba(201,168,76,.1);}
+.card:hover::before{transform:scaleX(1);}
+
+.card-icon{font-size:36px;}
+.card-titulo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--ouro);}
+.card-desc{font-size:13px;color:var(--cinza-texto);line-height:1.6;}
+.card-badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:auto;width:fit-content;}
+.badge-green{background:rgba(39,174,96,.15);color:#2ecc71;border:1px solid rgba(39,174,96,.3);}
+.badge-gold{background:rgba(201,168,76,.15);color:var(--ouro);border:1px solid rgba(201,168,76,.3);}
+.badge-blue{background:rgba(41,128,185,.15);color:#3498db;border:1px solid rgba(41,128,185,.3);}
+
+/* STATUS */
+.status-bar{background:var(--preto-card);border-top:1px solid var(--preto-borda);padding:16px 40px;display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:auto;}
+.status-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--cinza-texto);}
+.dot{width:7px;height:7px;border-radius:50%;animation:pulse 2s infinite;}
+.dot.green{background:#27ae60;}
+.dot.gold{background:var(--ouro);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* DATA */
+.data-bar{text-align:center;padding:12px;font-size:12px;color:var(--cinza-texto);border-top:1px solid var(--preto-borda);}
+
+@media(max-width:600px){
+  .header{padding:20px;}
+  .logo-text{font-size:26px;}
+  .grid{padding:16px;grid-template-columns:1fr;}
+  .hero{padding:28px 20px 16px;}
+  .status-bar{padding:12px 20px;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-icon">⚖️</div>
+  <div class="logo-text">AP Soluções Jurídicas</div>
+  <div class="logo-sub">Sistema de Gestão Jurídica</div>
+  <div class="oab">Adriano Paulo de Sá Silva | OAB/PI nº 13.896 | Floriano/PI</div>
+</div>
+
+<div class="hero">
+  <div class="hero-title">Selecione o módulo desejado</div>
+  <div class="hero-sub">Sistema integrado com banco de dados em nuvem e inteligência artificial</div>
+</div>
+
+<div class="grid">
+
+  <a href="sistema_juridico_ap.html" class="card">
+    <div class="card-icon">📊</div>
+    <div class="card-titulo">Sistema Principal</div>
+    <div class="card-desc">Gestão completa de clientes, processos, prazos e financeiro. Dashboard em tempo real com dados do Supabase.</div>
+    <div class="card-badge badge-green">✅ Online</div>
+  </a>
+
+  <a href="agentes_ap.html" class="card">
+    <div class="card-icon">🤖</div>
+    <div class="card-titulo">Agentes de IA</div>
+    <div class="card-desc">8 agentes jurídicos especializados: Guardião de Prazos, Especialista PASEP/RPPS, Gerador de Peças, WhatsApp e mais.</div>
+    <div class="card-badge badge-green">✅ Groq — R$ 0/mês</div>
+  </a>
+
+  <a href="alertas_ap.html" class="card">
+    <div class="card-icon">🔔</div>
+    <div class="card-titulo">Central de Alertas</div>
+    <div class="card-desc">Notificações por e-mail automático, links WhatsApp e integração com Google Agenda. EmailJS configurado.</div>
+    <div class="card-badge badge-green">✅ EmailJS ativo</div>
+  </a>
+
+  <a href="cerebro_pasep.html" class="card">
+    <div class="card-icon">🧠</div>
+    <div class="card-titulo">Cérebro PASEP</div>
+    <div class="card-desc">Banco de teses jurídicas, índices de correção (Plano Verão, Collor I e II), minutas e movimentações PJe/e-Proc.</div>
+    <div class="card-badge badge-gold">⚖️ Especializado</div>
+  </a>
+
+</div>
+
+<div class="status-bar">
+  <div class="status-item"><div class="dot green"></div>Supabase conectado</div>
+  <div class="status-item"><div class="dot green"></div>GitHub Pages online</div>
+  <div class="status-item"><div class="dot green"></div>Groq IA ativa</div>
+  <div class="status-item"><div class="dot green"></div>EmailJS configurado</div>
+  <div class="status-item"><div class="dot gold"></div>Cloudflare Worker ativo</div>
+</div>
+
+<div class="data-bar" id="dataBar"></div>
+
+<script>
+const d = new Date();
+document.getElementById('dataBar').textContent =
+  `${d.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'})} — ${d.toLocaleTimeString('pt-BR')}`;
+setInterval(() => {
+  const n = new Date();
+  document.getElementById('dataBar').textContent =
+    `${n.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'long', year:'numeric'})} — ${n.toLocaleTimeString('pt-BR')}`;
+}, 1000);
+</script>
+
+</body>
+</html>
