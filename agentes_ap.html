@@ -153,6 +153,11 @@ pre{background:#0a0a0a;border:1px solid var(--preto-borda);border-radius:8px;pad
       <div><div class="agente-nome">Monitor Jurisprudência</div><div class="agente-desc">STF, STJ, TRF1, TJ/PI</div></div>
     </div>
 
+    <div class="agente-item" onclick="ativarAgente('datajud')" id="item-datajud">
+      <div class="agente-icon" style="background:#0a1a18;">🔍</div>
+      <div><div class="agente-nome">Monitor Processual</div><div class="agente-desc">Consulta DataJud/CNJ em tempo real</div></div>
+    </div>
+
     <hr class="sidebar-divider">
     <div class="sidebar-title">Atendimento</div>
 
@@ -467,6 +472,30 @@ REGRAS:
 - Manter tom profissional e empático
 - Respostas curtas e claras para WhatsApp
 - Jamais prometer resultados ou prazos específicos sem confirmação`
+  },
+
+  datajud: {
+    nome: 'Monitor Processual',
+    icon: '🔍',
+    bg: '#0a1a18',
+    sub: 'Consulta DataJud/CNJ — movimentações em tempo real',
+    quickActions: ['🔍 Consultar processo TJPI', '⚖️ Consultar processo TRF1', '📋 Últimas movimentações', '🏛️ Buscar por tribunal'],
+    systemPrompt: (ctx) => `Você é o Monitor Processual do escritório AP Soluções Jurídicas, Dr. Adriano Paulo de Sá Silva (OAB/PI nº 13.896), Floriano/PI.
+
+Você recebe dados de processos consultados via API DataJud/CNJ e os interpreta para o advogado.
+
+Ao receber dados de um processo, apresente de forma clara:
+• Número e tribunal
+• Classe processual e assunto
+• Data de ajuizamento
+• Fase atual
+• Últimas movimentações (data e descrição)
+• Alertas sobre prazos ou urgências identificadas
+
+PROCESSOS DO ESCRITÓRIO:
+${ctx}
+
+Se o número do processo informado não trouxer resultado, oriente sobre o formato correto: NNNNNNN-DD.AAAA.J.TT.OOOO`
   }
 };
 
@@ -561,7 +590,8 @@ function ativarAgente(id) {
       jurisprudencia: `Olá, Dr. Adriano! 🏛️\n\nSou o **Monitor de Jurisprudência**. Monitoro STF, STJ, TRF1ª Região, TJPI e JEF Floriano.\n\nTenho acumulado os principais precedentes aplicáveis às causas do escritório.\n\nQual tribunal ou tema deseja pesquisar?`,
       frontdesk: `Olá, Dr. Adriano! 🤝\n\nSou o **Front-Desk IA**. Faço a triagem inteligente de novos casos.\n\nMe descreva o caso do novo cliente e vou analisar:\n✅ Viabilidade jurídica\n✅ Estimativa de êxito\n✅ Documentos necessários\n✅ Prescrição\n✅ Valor estimado da causa`,
       whatsapp: `Olá, Dr. Adriano! 📱\n\nSou o **Notificador WhatsApp**. Gero mensagens profissionais para enviar aos seus clientes.\n\nTenho os dados de contato de todos os clientes cadastrados no sistema.\n\nMe diga:\n• Para qual cliente?\n• Sobre qual assunto ou movimentação?\n\nVou redigir a mensagem e gerar o link para envio direto!`,
-      atendente: `Olá, Dr. Adriano! 💬\n\nSou o **Atendente Virtual**. Tenho dois modos:\n\n**Modo 1 — Simulação:** Simulo ser um cliente para você treinar respostas\n**Modo 2 — Gerador:** Crio respostas prontas para situações frequentes\n\nQual modo deseja usar?`
+      atendente: `Olá, Dr. Adriano! 💬\n\nSou o **Atendente Virtual**. Tenho dois modos:\n\n**Modo 1 — Simulação:** Simulo ser um cliente para você treinar respostas\n**Modo 2 — Gerador:** Crio respostas prontas para situações frequentes\n\nQual modo deseja usar?`,
+      datajud: `Olá, Dr. Adriano! 🔍\n\nSou o **Monitor Processual**, conectado diretamente à API pública do **DataJud/CNJ**.\n\nConsulto em tempo real os tribunais:\n• **TJPI** — Vara da Fazenda Pública de Floriano\n• **TRF1** — Justiça Federal 1ª Região\n• **Todos os 91 tribunais** do Brasil\n\nInforme o **número do processo** (formato CNJ) e vou buscar as movimentações agora!`
     };
 
     historicos[id].push({ role: 'assistant', content: boas_vindas[id] || `Olá! Sou o ${ag.nome}. Como posso ajudar?` });
@@ -612,6 +642,110 @@ function removerTyping() {
   if (t) t.remove();
 }
 
+// =============================================
+// DATAJUD — API PÚBLICA CNJ
+// =============================================
+const DATAJUD_KEY = 'cDZHYzlZa0JadVREZDJCendQbXY6SkJlTzNjLV9TRENyQk1RdnFKZGRQdw==';
+const DATAJUD_BASE = 'https://api-publica.datajud.cnj.jus.br';
+
+const TRIBUNAIS = {
+  'tjpi': 'api_publica_tjpi',
+  'trf1': 'api_publica_trf1',
+  'trf2': 'api_publica_trf2',
+  'tjma': 'api_publica_tjma',
+  'tjce': 'api_publica_tjce',
+  'stj': 'api_publica_stj',
+  'tst': 'api_publica_tst'
+};
+
+function detectarTribunal(txt) {
+  const t = txt.toLowerCase();
+  // Detectar pelo código do tribunal no número CNJ (posição .J.TT.)
+  const match = txt.match(/\d{7}-\d{2}\.\d{4}\.(\d)\.(\d{2})\.\d{4}/);
+  if (match) {
+    const segJust = match[1]; // 8=TJ, 4=TRF, 5=TRT
+    const tribunal = match[2];
+    if (segJust === '8' && tribunal === '18') return 'tjpi';
+    if (segJust === '4' && tribunal === '01') return 'trf1';
+    if (segJust === '4' && tribunal === '02') return 'trf2';
+    if (segJust === '8' && tribunal === '10') return 'tjma';
+    if (segJust === '8' && tribunal === '06') return 'tjce';
+  }
+  // Detectar por menção explícita
+  if (t.includes('tjpi') || t.includes('piauí') || t.includes('piaui')) return 'tjpi';
+  if (t.includes('trf1') || t.includes('trf 1') || t.includes('federal')) return 'trf1';
+  if (t.includes('stj')) return 'stj';
+  if (t.includes('tst')) return 'tst';
+  return 'tjpi'; // padrão
+}
+
+function extrairNumeroProcesso(txt) {
+  const match = txt.match(/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/);
+  return match ? match[0] : null;
+}
+
+async function consultarDataJud(txt) {
+  const numero = extrairNumeroProcesso(txt);
+
+  if (!numero) {
+    return `🔍 **Monitor Processual — DataJud/CNJ**\n\nNão identifiquei um número de processo no formato CNJ.\n\n**Formato correto:** \`0000000-00.0000.0.00.0000\`\n\n**Exemplos:**\n• TJPI: \`0800235-61.2026.8.18.0028\`\n• TRF1: \`1007958-34.2024.4.01.4003\`\n\nDigite o número do processo e vou consultar agora.`;
+  }
+
+  const tribunal = detectarTribunal(txt.includes(numero) ? numero : txt);
+  const alias = TRIBUNAIS[tribunal] || 'api_publica_tjpi';
+  const url = `${DATAJUD_BASE}/${alias}/_search`;
+
+  const numeroLimpo = numero.replace(/[.\-]/g, '').replace(/^0+/, '');
+
+  const query = {
+    query: {
+      match: { numeroProcesso: numero }
+    },
+    _source: ['numeroProcesso', 'classe', 'assunto', 'tribunal', 'dataAjuizamento', 'orgaoJulgador', 'movimentos', 'nivelSigilo', 'formato'],
+    size: 1
+  };
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `APIKey ${DATAJUD_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(query)
+  });
+
+  if (!resp.ok) {
+    throw new Error(`HTTP ${resp.status} — ${resp.statusText}`);
+  }
+
+  const data = await resp.json();
+  const hits = data?.hits?.hits || [];
+
+  if (hits.length === 0) {
+    return `🔍 **Monitor Processual — DataJud/CNJ**\n\n⚠️ Processo **${numero}** não encontrado no **${tribunal.toUpperCase()}**.\n\n**Possíveis causas:**\n• Tribunal incorreto — tente especificar: "consultar no TRF1" ou "no TJPI"\n• Processo muito recente (DataJud atualiza com delay de até 24h)\n• Número digitado incorretamente\n• Processo sigiloso (não aparece na API pública)\n\nQuer que eu tente em outro tribunal?`;
+  }
+
+  const proc = hits[0]._source;
+  const classe = proc.classe?.nome || '—';
+  const assunto = proc.assunto?.[0]?.nome || '—';
+  const orgao = proc.orgaoJulgador?.nome || '—';
+  const dataAj = proc.dataAjuizamento ? new Date(proc.dataAjuizamento).toLocaleDateString('pt-BR') : '—';
+  const movimentos = (proc.movimentos || []).slice(0, 5);
+
+  let movsTexto = '';
+  if (movimentos.length > 0) {
+    movsTexto = '\n\n📋 **Últimas movimentações:**\n' + movimentos.map(m => {
+      const data = m.dataHora ? new Date(m.dataHora).toLocaleDateString('pt-BR') : '—';
+      const nome = m.nome || m.complementosTabelados?.[0]?.nome || '—';
+      return `• ${data} — ${nome}`;
+    }).join('\n');
+  } else {
+    movsTexto = '\n\n📋 **Movimentações:** nenhuma registrada no DataJud';
+  }
+
+  return `🔍 **Monitor Processual — DataJud/CNJ**\n\n✅ Processo encontrado!\n\n**Número:** ${proc.numeroProcesso || numero}\n**Tribunal:** ${tribunal.toUpperCase()}\n**Classe:** ${classe}\n**Assunto:** ${assunto}\n**Órgão Julgador:** ${orgao}\n**Ajuizamento:** ${dataAj}${movsTexto}\n\n---\n_Dados via API pública DataJud/CNJ — atualização pode ter delay de até 24h_`;
+}
+
 async function enviarMensagem() {
   const input = document.getElementById('chatInput');
   const txt = input.value.trim();
@@ -634,6 +768,24 @@ async function processarMensagem(txt) {
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
   mostrarTyping();
+
+  // ---- AGENTE DATAJUD: consulta real à API CNJ ----
+  if (agenteAtual === 'datajud') {
+    try {
+      const resultado = await consultarDataJud(txt);
+      removerTyping();
+      historicos[agenteAtual].push({ role: 'assistant', content: resultado });
+      renderChat();
+    } catch(e) {
+      removerTyping();
+      historicos[agenteAtual].push({ role: 'assistant', content: `❌ Erro na consulta DataJud: ${e.message}` });
+      renderChat();
+    } finally {
+      btn.disabled = false;
+    }
+    return;
+  }
+  // ---- FIM DATAJUD ----
 
   try {
     const ctx = gerarContexto();
@@ -660,7 +812,7 @@ async function processarMensagem(txt) {
     const data = await response.json();
     removerTyping();
 
-    if (data.error) throw new Error(data.error.message);
+    if (data.error) throw new Error(JSON.stringify(data.error));
 
     let resposta = data.content?.[0]?.text || 'Sem resposta.';
 
@@ -677,11 +829,10 @@ async function processarMensagem(txt) {
 
   } catch(e) {
     removerTyping();
-    const errMsg = e.message.includes('API') || e.message.includes('fetch')
-      ? '❌ Erro de conexão com a IA. Verifique sua internet.'
-      : `❌ Erro: ${e.message}`;
+    const errMsg = `❌ Erro: ${e.message || e.toString()}`;
     historicos[agenteAtual].push({ role: 'assistant', content: errMsg });
     renderChat();
+    console.error('Erro completo:', e);
   } finally {
     btn.disabled = false;
   }
